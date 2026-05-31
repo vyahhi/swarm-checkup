@@ -1,0 +1,92 @@
+---
+name: agent-qa-lab
+description: W&B-backed workflow for evaluating, red-teaming, debugging, and improving agentic applications. Use when the user asks to test an agent, harden an agent, generate agent evals, inspect agent failures, compare prompt/model variants, create a reliability report, add W&B Weave tracing, or run an Agent QA Lab demo in a repository.
+---
+
+# Agent QA Lab
+
+Use this skill to turn an agent prototype into a measurable reliability loop: generate or load tests, run the agent, trace execution, score results, compare variants, and write a report.
+
+The skill is compatible with Claude and Codex because it uses a standard `SKILL.md` plus portable scripts. In Codex, prefer local shell tools and repo tests. In Claude, follow the same workflow and run the bundled scripts when tool access is available.
+
+## Workflow
+
+1. Inspect the repo for an existing agent harness, tests, prompts, policies, or W&B/Weave setup.
+2. Prefer existing project commands over inventing new infrastructure.
+3. If the repo is this Agent QA Lab demo, run `scripts/run_agent_qa.py` from this skill.
+4. If the repo has no harness, create a small eval harness close to the agent entrypoint.
+5. Use deterministic fallback cases for live demos; add LLM-generated cases only when the user asks.
+6. Wrap meaningful agent steps with Weave tracing when editing code is in scope:
+   - input/test generation
+   - triage/routing
+   - retrieval/tool calls
+   - decision step
+   - final response
+   - evaluator/scorer
+7. Score outputs with a fixed taxonomy before adding sophisticated LLM judges.
+8. Compare baseline and variants on the same test suite.
+9. Produce a short Markdown report with metrics, top failures, fixed cases, and W&B links.
+
+## Quick Start Script
+
+Run the bundled script from any repo:
+
+```bash
+python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
+```
+
+For W&B logging:
+
+```bash
+python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode online
+```
+
+The script detects this demo repo and runs:
+
+```bash
+python -m agent_qa_lab.demo_run --cases <N> --wandb-mode <mode>
+```
+
+It writes a report to `docs/agent-qa-skill-report.md` by default.
+
+## Report Requirements
+
+Every report should include:
+
+- command run
+- baseline pass rate
+- best variant
+- improvement delta
+- top failure category
+- fixed case count
+- W&B run link when available
+- recommended next action
+
+If no executable harness exists, write a scaffold report instead of pretending evaluation succeeded. The scaffold report should identify likely agent files, missing harness pieces, and the smallest next implementation step.
+
+## Evaluation Taxonomy
+
+Use a small fixed taxonomy unless the repo already defines one:
+
+- `ignored_policy_constraint`
+- `hallucinated_policy`
+- `missing_required_information`
+- `bad_escalation_decision`
+- `prompt_injection_vulnerability`
+- `incomplete_response`
+- `bad_tone`
+- `wrong_decision`
+- `unsupported_claim`
+- `tool_or_retrieval_failure`
+- `runtime_error`
+
+## Editing Guidance
+
+Keep changes small and demo-oriented:
+
+- Add tracing at function boundaries, not around every line.
+- Keep tests deterministic for live demos.
+- Do not require a web UI to prove value.
+- Prefer one generated report and one W&B run over a broad refactor.
+- Keep `.env` and local W&B run directories out of git.
+

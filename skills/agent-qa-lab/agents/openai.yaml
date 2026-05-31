@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent QA Lab"
+  short_description: "Run W&B-backed QA workflows for agent apps"
+  default_prompt: "Use Agent QA Lab to evaluate this agent, log traces when configured, and produce a reliability report."

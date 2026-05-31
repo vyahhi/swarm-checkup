@@ -25,8 +25,10 @@ Each ticket is run through a baseline agent and improved prompt variants. The ev
 
 - [Streamlit app](app.py)
 - [Demo package](agent_qa_lab/)
+- [Claude/Codex skill](skills/agent-qa-lab/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
 - [Fallback demo test suite](data/fallback_tests.json)
+- [Generated skill report](docs/agent-qa-skill-report.md)
 - [Short summary](docs/agent-qa-lab-summary.md)
 - [How it works](docs/how-it-works.md)
 - [Product requirements document](docs/agent-qa-lab-prd.md)
@@ -47,6 +49,24 @@ CLI smoke test:
 ```
 
 Use `--wandb-mode online` or select online mode in the app to log Weave traces and W&B Tables.
+
+## Run the Skill
+
+The repo includes a portable Claude/Codex skill at `skills/agent-qa-lab`.
+
+Run it directly:
+
+```bash
+python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
+```
+
+With W&B logging:
+
+```bash
+python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode online
+```
+
+The skill writes `docs/agent-qa-skill-report.md`.
 
 ## Demo Flow
 
