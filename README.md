@@ -17,7 +17,7 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 
 ## Example Scenario
 
-The diagram below shows the demo workflow for a fake customer-support refund agent. The harness starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
+The diagram below shows the demo workflow for a fake customer-support refund swarm. The harness starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
 
 Each ticket is run through a baseline support swarm and improved prompt variants. The evaluator checks whether the system made the right refund decision, followed policy, handled missing information, resisted injection, coordinated handoffs, and used an acceptable tone. W&B Weave captures the coordinator, specialist agents, and judge as traces, while W&B Tables compare the baseline and variants case by case.
 
@@ -60,6 +60,8 @@ python3 scripts/install_skill.py
 ```bash
 codex exec -C . "Use agent-checkup skill for agent refund_support_agent."
 ```
+
+This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
 
 Explicit local-only run:
 
