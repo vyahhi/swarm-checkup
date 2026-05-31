@@ -27,6 +27,7 @@ Each ticket is run through a baseline support swarm and improved prompt variants
 ## Repository Guide
 
 - [Demo agent package](refund_support_agent/)
+- [Separate swarm agent modules](refund_support_agent/swarm_agents/)
 - [Claude/Codex skill](skills/agent-checkup/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
 - [Fallback demo test suite](data/fallback_tests.json)

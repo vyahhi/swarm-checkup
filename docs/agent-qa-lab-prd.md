@@ -612,6 +612,14 @@ The demo should aim for:
 │   ├── prompts.py
 │   ├── test_generator.py
 │   ├── support_agents.py
+│   ├── swarm_agents/
+│   │   ├── coordinator.py
+│   │   ├── triage_agent.py
+│   │   ├── policy_agent.py
+│   │   ├── risk_agent.py
+│   │   ├── decision_agent.py
+│   │   ├── response_agent.py
+│   │   └── qa_judge.py
 │   ├── evaluator.py
 │   ├── prompt_improver.py
 │   ├── runner.py

@@ -91,7 +91,8 @@ flowchart TB
     subgraph Core[Agent QA Lab package]
         TG[test_generator.py]
         Runner[runner.py]
-        Agents[support_agents.py]
+        Orchestrator[support_agents.py]
+        Agents[swarm_agents/*.py]
         Eval[evaluator.py]
         Prompts[prompts.py]
         Log[wandb_logging.py]
@@ -120,7 +121,8 @@ flowchart TB
     Tests --> TG
     TG --> Runner
     Prompts --> Runner
-    Runner --> Agents
+    Runner --> Orchestrator
+    Orchestrator --> Agents
     Agents --> Coord --> Triage --> Lookup --> Risk --> Decision --> Response
     Response --> Eval
     Eval --> Judge
@@ -139,7 +141,7 @@ flowchart TB
 
     class S,CLI ui
     class Policy,Seeds,Tests data
-    class TG,Runner,Agents,Prompts,Log core
+    class TG,Runner,Orchestrator,Agents,Prompts,Log core
     class Coord,Triage,Lookup,Risk,Decision,Response workflow
     class Eval,Judge eval
     class Weave,Tables,Run wandb
