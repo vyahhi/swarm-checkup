@@ -4,6 +4,12 @@ Agents are easy to demo and hard to trust. We built the W&B-powered lab that mak
 
 Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications. It turns a few example tasks into a stress-test suite, traces agent execution in W&B Weave, scores failures, and compares improved prompt variants.
 
+## Example Scenario
+
+The diagram below shows the demo workflow for a fake customer-support refund agent. The app starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
+
+Each ticket is run through a baseline agent and improved prompt variants. The evaluator checks whether the agent made the right refund decision, followed policy, handled missing information, resisted injection, and used an acceptable tone. W&B Weave captures the agent steps as traces, while W&B Tables compare the baseline and variants case by case.
+
 ![Agent QA Lab flow](docs/diagrams/agent-qa-lab-flow.png)
 
 The current repository contains planning docs for a W&B hackathon build:
