@@ -1,6 +1,6 @@
 # Agent Checkup Report
 
-Generated: 2026-05-31 17:38:42 UTC
+Generated: 2026-05-31 17:45:36 UTC
 
 ## Command
 
@@ -11,7 +11,7 @@ Generated: 2026-05-31 17:38:42 UTC
 ## Target
 
 - Repo: `/Users/vyahhi/projects/sundai/20260531`
-- Agent path: `refund_support_agent`
+- Agent path: `refund_support_swarm`
 - System type: `swarm`
 
 ## Result

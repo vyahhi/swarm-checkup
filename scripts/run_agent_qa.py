@@ -16,7 +16,7 @@ def main() -> int:
     command = [
         sys.executable,
         "-m",
-        "refund_support_agent.demo_run",
+        "refund_support_swarm.demo_run",
         "--cases",
         str(args.cases),
         "--wandb-mode",

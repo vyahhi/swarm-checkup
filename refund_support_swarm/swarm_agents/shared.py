@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from refund_support_agent.models import PolicyClause
+from refund_support_swarm.models import PolicyClause
 
 
 def contains_any(text: str, needles: list[str]) -> bool:
@@ -53,4 +53,3 @@ def handoff_event(from_agent: str, to_agent: str, payload_keys: list[str], reaso
         "status": "ok",
         "latency_ms": latency_ms,
     }
-

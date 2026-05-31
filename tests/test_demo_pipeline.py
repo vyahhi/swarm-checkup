@@ -4,10 +4,10 @@ import importlib.util
 import sys
 from pathlib import Path
 
-from refund_support_agent.config import load_settings
-from refund_support_agent.prompts import get_variants
-from refund_support_agent.runner import build_demo_run, records_to_dataframe, summarize_variants
-from refund_support_agent.test_generator import generate_demo_suite
+from refund_support_swarm.config import load_settings
+from refund_support_swarm.prompts import get_variants
+from refund_support_swarm.runner import build_demo_run, records_to_dataframe, summarize_variants
+from refund_support_swarm.test_generator import generate_demo_suite
 
 
 def test_demo_suite_has_expected_shape() -> None:

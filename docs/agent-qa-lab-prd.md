@@ -604,7 +604,7 @@ The demo should aim for:
 ├── docs/
 │   ├── agent-qa-lab-summary.md
 │   └── agent-qa-lab-prd.md
-├── refund_support_agent/
+├── refund_support_swarm/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── models.py

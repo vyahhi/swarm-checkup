@@ -1,4 +1,4 @@
-"""Refund support demo agent package."""
+"""Refund support demo swarm package."""
 
 __all__ = ["__version__"]
 

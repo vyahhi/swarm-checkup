@@ -26,8 +26,8 @@ Each ticket is run through a baseline support swarm and improved prompt variants
 
 ## Repository Guide
 
-- [Demo agent package](refund_support_agent/)
-- [Separate swarm agent modules](refund_support_agent/swarm_agents/)
+- [Demo swarm package](refund_support_swarm/)
+- [Separate swarm agent modules](refund_support_swarm/swarm_agents/)
 - [Claude/Codex skill](skills/agent-checkup/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
 - [Fallback demo test suite](data/fallback_tests.json)
@@ -60,7 +60,7 @@ python3 scripts/install_skill.py
 2. Run it with Codex against the demo swarm:
 
 ```bash
-codex exec -C . "Use agent-checkup skill for swarm refund_support_agent."
+codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm."
 ```
 
 This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
@@ -68,13 +68,13 @@ This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is 
 Explicit local-only run:
 
 ```bash
-codex exec -C . "Use agent-checkup skill for swarm refund_support_agent. Run 24 cases. Run W&B disabled."
+codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm. Run 24 cases. Run W&B disabled."
 ```
 
 Direct script fallback:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_agent --cases 24
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_swarm --cases 24
 ```
 
 The skill writes `docs/agent-checkup-report.md`.
