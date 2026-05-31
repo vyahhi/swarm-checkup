@@ -27,6 +27,7 @@ def load_settings(wandb_mode: str | None = None) -> Settings:
     load_dotenv(ROOT_DIR / ".env")
     mode = None if wandb_mode == "auto" else wandb_mode
     mode = mode or os.getenv("AGENT_QA_WANDB_MODE")
+    mode = None if mode == "auto" else mode
     if not mode:
         mode = "online" if os.getenv("WANDB_API_KEY") else "disabled"
     return Settings(

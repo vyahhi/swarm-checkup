@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import importlib.util
+import sys
+from pathlib import Path
+
 from refund_support_agent.config import load_settings
 from refund_support_agent.prompts import get_variants
 from refund_support_agent.runner import build_demo_run, records_to_dataframe, summarize_variants
@@ -45,3 +49,30 @@ def test_wandb_auto_mode_uses_api_key(monkeypatch) -> None:
     monkeypatch.delenv("AGENT_QA_WANDB_MODE", raising=False)
     monkeypatch.setenv("WANDB_API_KEY", "test-key")
     assert load_settings(wandb_mode="auto").wandb_mode == "online"
+
+
+def test_wandb_env_auto_mode_is_resolved(monkeypatch) -> None:
+    monkeypatch.setenv("AGENT_QA_WANDB_MODE", "auto")
+    monkeypatch.setenv("WANDB_API_KEY", "test-key")
+    assert load_settings().wandb_mode == "online"
+
+
+def test_skill_runner_loads_env_file_values(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("WANDB_API_KEY", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("export WANDB_API_KEY='from-env-file'\nWANDB_ENTITY = demo-team\n", encoding="utf-8")
+    runner = _load_skill_runner()
+    assert runner.resolve_wandb_mode(tmp_path, "auto") == "online"
+    assert runner.env_file_values(env_file)["WANDB_API_KEY"] == "from-env-file"
+    completed = runner.run_command([sys.executable, "-c", "import os; print(os.getenv('WANDB_API_KEY'))"], tmp_path)
+    assert completed.stdout.strip() == "from-env-file"
+
+
+def _load_skill_runner():
+    path = Path(__file__).resolve().parents[1] / "skills" / "agent-checkup" / "scripts" / "run_agent_qa.py"
+    spec = importlib.util.spec_from_file_location("agent_checkup_runner", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module

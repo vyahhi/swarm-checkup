@@ -161,25 +161,35 @@ def select_python(repo: Path) -> str:
 def resolve_wandb_mode(repo: Path, requested_mode: str) -> str:
     if requested_mode != "auto":
         return requested_mode
-    if os.environ.get("WANDB_API_KEY") or env_file_has_key(repo / ".env", "WANDB_API_KEY"):
+    if os.environ.get("WANDB_API_KEY") or env_file_values(repo / ".env").get("WANDB_API_KEY"):
         return "online"
     return "disabled"
 
 
-def env_file_has_key(path: Path, key: str) -> bool:
+def env_file_values(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
     if not path.exists():
-        return False
+        return values
     for line in path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        if stripped.startswith(f"{key}=") and stripped.split("=", 1)[1].strip().strip("'\""):
-            return True
-    return False
+        if stripped.startswith("export "):
+            stripped = stripped.removeprefix("export ").strip()
+        if "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip("'\"")
+        if key and value:
+            values[key] = value
+    return values
 
 
 def run_command(command: list[str], repo: Path) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
+    for key, value in env_file_values(repo / ".env").items():
+        env.setdefault(key, value)
     env.setdefault("WANDB_SILENT", "true")
     return subprocess.run(command, cwd=repo, env=env, text=True, capture_output=True, check=False)
 
