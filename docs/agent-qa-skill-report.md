@@ -1,12 +1,17 @@
 # Agent QA Skill Report
 
-Generated: 2026-05-31 16:58:38 UTC
+Generated: 2026-05-31 17:04:33 UTC
 
 ## Command
 
 ```bash
 /Users/vyahhi/projects/sundai/20260531/.venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled
 ```
+
+## Target
+
+- Repo: `/Users/vyahhi/projects/sundai/20260531`
+- Agent path: `refund_support_agent`
 
 ## Result
 

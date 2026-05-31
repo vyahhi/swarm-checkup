@@ -23,7 +23,7 @@ Each ticket is run through a baseline agent and improved prompt variants. The ev
 
 ## Repository Guide
 
-- [Demo package](agent_qa_lab/)
+- [Demo agent package](refund_support_agent/)
 - [Claude/Codex skill](skills/agent-qa-lab/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
 - [Fallback demo test suite](data/fallback_tests.json)
@@ -43,20 +43,32 @@ python3 -m venv .venv
 
 Use `--wandb-mode online` to log Weave traces and W&B Tables.
 
-## Run the Skill
+## Install and Run the Skill
 
 The repo includes a portable Claude/Codex skill at `skills/agent-qa-lab`.
 
-Run it directly:
+1. Install the skill locally:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
+python3 scripts/install_skill.py
+```
+
+2. Run it with Codex against the demo agent:
+
+```bash
+codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent. Run 24 cases with W&B disabled."
 ```
 
 With W&B logging:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode online
+codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent. Run 24 cases with W&B online."
+```
+
+Direct script fallback:
+
+```bash
+python skills/agent-qa-lab/scripts/run_agent_qa.py --agent-path refund_support_agent --cases 24 --wandb-mode disabled
 ```
 
 The skill writes `docs/agent-qa-skill-report.md`.

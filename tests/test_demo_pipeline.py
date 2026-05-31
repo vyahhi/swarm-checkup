@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from agent_qa_lab.prompts import get_variants
-from agent_qa_lab.runner import build_demo_run, records_to_dataframe, summarize_variants
-from agent_qa_lab.test_generator import generate_demo_suite
+from refund_support_agent.prompts import get_variants
+from refund_support_agent.runner import build_demo_run, records_to_dataframe, summarize_variants
+from refund_support_agent.test_generator import generate_demo_suite
 
 
 def test_demo_suite_has_expected_shape() -> None:
@@ -26,4 +26,3 @@ def test_summary_has_failure_taxonomy() -> None:
     summaries = summarize_variants(records)
     baseline = next(summary for summary in summaries if summary.variant == "baseline")
     assert baseline.top_failure_category != "none"
-

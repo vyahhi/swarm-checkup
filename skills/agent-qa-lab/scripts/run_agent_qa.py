@@ -35,6 +35,7 @@ class VariantResult:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run Agent QA Lab and write a reliability report.")
     parser.add_argument("--repo", default=".", help="Repository root to evaluate.")
+    parser.add_argument("--agent-path", help="Path to the target agent file or directory.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
     parser.add_argument("--report", default="docs/agent-qa-skill-report.md", help="Report path relative to repo root.")
@@ -44,14 +45,15 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    repo = Path(args.repo).resolve()
+    agent_path = Path(args.agent_path).resolve() if args.agent_path else None
+    repo = resolve_repo_root(Path(args.repo).resolve(), agent_path)
     report_path = repo / args.report
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     command = resolve_eval_command(repo, args.cases, args.wandb_mode, args.command)
     if command:
         completed = run_command(command, repo)
-        report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode)
+        report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode, agent_path, repo)
         report_path.write_text(report, encoding="utf-8")
         print(f"report={report_path}")
         print(completed.stdout)
@@ -59,10 +61,20 @@ def main() -> int:
             print(completed.stderr, file=sys.stderr)
         return completed.returncode
 
-    report_path.write_text(build_scaffold_report(repo), encoding="utf-8")
+    report_path.write_text(build_scaffold_report(repo, agent_path), encoding="utf-8")
     print(f"report={report_path}")
     print("No executable agent QA harness detected. Wrote scaffold report.")
     return 2
+
+
+def resolve_repo_root(repo: Path, agent_path: Path | None) -> Path:
+    if agent_path is None:
+        return repo
+    current = agent_path if agent_path.is_dir() else agent_path.parent
+    for candidate in [current, *current.parents]:
+        if (candidate / ".git").exists() or (candidate / "pyproject.toml").exists() or (candidate / "package.json").exists():
+            return candidate
+    return repo
 
 
 def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, command_template: str | None) -> list[str] | None:
@@ -145,7 +157,7 @@ def parse_variant_results(output: str) -> list[VariantResult]:
     return results
 
 
-def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: int) -> str:
+def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: int, agent_path: Path | None, repo: Path) -> str:
     results = parse_variant_results(stdout)
     baseline = next((item for item in results if item.variant == "baseline"), None)
     variants = [item for item in results if item.variant != "baseline"]
@@ -163,6 +175,11 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
         "```bash",
         " ".join(command),
         "```",
+        "",
+        "## Target",
+        "",
+        f"- Repo: `{repo}`",
+        f"- Agent path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
         "",
         "## Result",
         "",
@@ -230,8 +247,8 @@ def find_wandb_url(text: str) -> str:
     return match.group(0) if match else ""
 
 
-def build_scaffold_report(repo: Path) -> str:
-    candidates = find_agent_candidates(repo)
+def build_scaffold_report(repo: Path, agent_path: Path | None = None) -> str:
+    candidates = find_agent_candidates(agent_path if agent_path else repo, repo)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     lines = [
         "# Agent QA Scaffold Report",
@@ -239,6 +256,11 @@ def build_scaffold_report(repo: Path) -> str:
         f"Generated: {now}",
         "",
         "No executable agent QA harness was detected.",
+        "",
+        "## Target",
+        "",
+        f"- Repo: `{repo}`",
+        f"- Agent path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
         "",
         "## Likely Agent Files",
         "",
@@ -267,9 +289,10 @@ def build_scaffold_report(repo: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
-def find_agent_candidates(repo: Path) -> list[str]:
+def find_agent_candidates(search_root: Path, repo: Path) -> list[str]:
     names = []
-    for path in repo.rglob("*"):
+    root = search_root if search_root.is_dir() else search_root.parent
+    for path in root.rglob("*"):
         if path.is_dir():
             if path.name in {".git", ".venv", "venv", "__pycache__", "node_modules"}:
                 dirs = []
@@ -278,10 +301,19 @@ def find_agent_candidates(repo: Path) -> list[str]:
             continue
         lower = path.name.lower()
         if any(token in lower for token in ["agent", "prompt", "tool", "eval", "weave", "support"]):
-            names.append(str(path.relative_to(repo)))
+            names.append(relative_or_abs(path, repo))
         if len(names) >= 20:
             break
     return names
+
+
+def relative_or_abs(path: Path | None, root: Path) -> str:
+    if path is None:
+        return ""
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
 
 
 if __name__ == "__main__":

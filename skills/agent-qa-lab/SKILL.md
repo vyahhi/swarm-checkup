@@ -35,10 +35,16 @@ Run the bundled script from any repo:
 python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
 ```
 
+When the user names a specific agent path, pass it through:
+
+```bash
+python skills/agent-qa-lab/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode disabled
+```
+
 For W&B logging:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode online
+python skills/agent-qa-lab/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode online
 ```
 
 The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:

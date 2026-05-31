@@ -602,7 +602,7 @@ The demo should aim for:
 ├── docs/
 │   ├── agent-qa-lab-summary.md
 │   └── agent-qa-lab-prd.md
-├── agent_qa_lab/
+├── refund_support_agent/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── models.py
