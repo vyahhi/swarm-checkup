@@ -76,7 +76,7 @@ codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm. Run 24 
 Direct script run:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_swarm --cases 24
+python3 skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_swarm --cases 24
 ```
 
 The skill writes `docs/agent-checkup-report.md`.

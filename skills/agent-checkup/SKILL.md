@@ -34,25 +34,25 @@ The skill is compatible with Claude and Codex because it uses a standard `SKILL.
 Run the bundled script from any repo:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --repo . --cases 24
+python3 skills/agent-checkup/scripts/run_agent_qa.py --repo . --cases 24
 ```
 
 When the user names a specific swarm package or entrypoint, pass it through:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/swarm --cases 24
+python3 skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/swarm --cases 24
 ```
 
 The script is swarm-only. It expects coordinator, specialist, handoff, or equivalent multi-agent behavior:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/swarm --cases 24
+python3 skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/swarm --cases 24
 ```
 
 W&B mode defaults to `auto`: use W&B online when `WANDB_API_KEY` is present in the environment or repo `.env`; otherwise disable W&B run logging. W&B Inference-backed agents still require `WANDB_API_KEY`. For explicit W&B logging:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/swarm --cases 24 --wandb-mode online
+python3 skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/swarm --cases 24 --wandb-mode online
 ```
 
 Agent execution is LLM-only through W&B Inference.
@@ -60,7 +60,7 @@ Agent execution is LLM-only through W&B Inference.
 The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_swarm.eval --cases {cases} --wandb-mode {wandb_mode}"
+python3 skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python3 -m your_swarm.eval --cases {cases} --wandb-mode {wandb_mode}"
 ```
 
 It writes a report to `docs/agent-checkup-report.md` by default.

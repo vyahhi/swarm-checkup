@@ -242,6 +242,8 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
     wandb_url = find_wandb_url(stdout + "\n" + stderr)
     system_type = find_key_value(stdout, "system_type") or "unknown"
     agent_mode = find_key_value(stdout, "agent_mode") or "llm"
+    llm_provider = find_key_value(stdout, "llm_provider")
+    model = find_key_value(stdout, "model")
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines = [
@@ -252,7 +254,7 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
         "## Command",
         "",
         "```bash",
-        " ".join(command),
+        display_command(command, repo),
         "```",
         "",
         "## Target",
@@ -261,11 +263,12 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
         f"- Swarm path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
         f"- System type: `{system_type}`",
         f"- Agent mode: `{agent_mode}`",
-        "",
-        "## Result",
-        "",
-        f"- Exit code: `{returncode}`",
     ]
+    if llm_provider:
+        lines.append(f"- LLM provider: `{llm_provider}`")
+    if model:
+        lines.append(f"- Model: `{model}`")
+    lines.extend(["", "## Result", "", f"- Exit code: `{returncode}`"])
     if baseline:
         lines.append(f"- Baseline pass rate: `{baseline.pass_rate:.1%}`")
         lines.append(f"- Baseline top failure: `{baseline.top_failure_category}`")
@@ -333,11 +336,27 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
 def recommendation(baseline: VariantResult | None, best: VariantResult | None) -> str:
     if not baseline or not best:
         return "Fix the harness output parsing or run the QA command manually."
+    if baseline.pass_rate >= 1.0 and baseline.top_failure_category == "none":
+        return "Baseline and variants passed this run. Increase the case count or add harder cases before changing prompts."
     if best.pass_rate <= baseline.pass_rate:
         return "No variant improved the baseline. Inspect failures and add a targeted prompt or policy-grounding change."
     if best.regressions:
         return f"Use `{best.variant}` as the leading candidate, but inspect regressions before shipping."
     return f"Use `{best.variant}` as the demo winner and show its fixed cases against the baseline."
+
+
+def display_command(command: list[str], repo: Path) -> str:
+    display_args = []
+    for arg in command:
+        path = Path(arg)
+        if not path.is_absolute():
+            display_args.append(arg)
+            continue
+        try:
+            display_args.append(str(path.relative_to(repo)))
+        except ValueError:
+            display_args.append(arg)
+    return " ".join(display_args)
 
 
 def find_wandb_url(text: str) -> str:

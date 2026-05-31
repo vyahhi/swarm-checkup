@@ -143,6 +143,39 @@ def test_skill_runner_loads_env_file_values(tmp_path: Path, monkeypatch) -> None
     assert completed.stdout.strip() == "from-env-file"
 
 
+def test_skill_runner_recommendation_handles_perfect_baseline() -> None:
+    runner = _load_skill_runner()
+    baseline = runner.VariantResult("baseline", 1.0, 1.0, 0, 0, "none")
+    best = runner.VariantResult("variant_a_policy_grounded", 1.0, 1.0, 0, 0, "none")
+    assert "passed this run" in runner.recommendation(baseline, best)
+    assert "Inspect failures" not in runner.recommendation(baseline, best)
+
+
+def test_skill_runner_report_uses_portable_command_path() -> None:
+    runner = _load_skill_runner()
+    repo = Path(__file__).resolve().parents[1]
+    command = [str(repo / ".venv" / "bin" / "python"), "scripts/run_agent_qa.py"]
+    assert runner.display_command(command, repo) == ".venv/bin/python scripts/run_agent_qa.py"
+
+
+def test_skill_runner_report_keeps_llm_metadata() -> None:
+    runner = _load_skill_runner()
+    stdout = "\n".join(
+        [
+            "cases=1",
+            "system_type=swarm",
+            "agent_mode=llm",
+            "llm_provider=wandb_inference",
+            "model=test-model",
+            "variant pass_rate mean_score fixed_cases regressions top_failure_category",
+            "baseline 1.0 1.0 0 0 none",
+        ]
+    )
+    report = runner.build_demo_report(["python3", "scripts/run_agent_qa.py"], stdout, "", 0, None, Path.cwd())
+    assert "- LLM provider: `wandb_inference`" in report
+    assert "- Model: `test-model`" in report
+
+
 def _load_skill_runner():
     path = Path(__file__).resolve().parents[1] / "skills" / "agent-checkup" / "scripts" / "run_agent_qa.py"
     spec = importlib.util.spec_from_file_location("agent_checkup_runner", path)
