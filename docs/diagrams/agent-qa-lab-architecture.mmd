@@ -50,3 +50,16 @@ flowchart TB
     Log --> Tables
     Log --> Run
 
+    classDef ui fill:#e5e7eb,stroke:#374151,color:#0f172a,stroke-width:2px
+    classDef data fill:#dbeafe,stroke:#2563eb,color:#0f172a,stroke-width:2px
+    classDef core fill:#fef3c7,stroke:#d97706,color:#0f172a,stroke-width:2px
+    classDef workflow fill:#ede9fe,stroke:#7c3aed,color:#0f172a,stroke-width:2px
+    classDef eval fill:#fee2e2,stroke:#dc2626,color:#0f172a,stroke-width:2px
+    classDef wandb fill:#dcfce7,stroke:#16a34a,color:#0f172a,stroke-width:2px
+
+    class S,CLI ui
+    class Policy,Seeds,Tests data
+    class TG,Runner,Agents,Prompts,Log core
+    class Triage,Lookup,Decision,Response workflow
+    class Eval,Judge eval
+    class Weave,Tables,Run wandb

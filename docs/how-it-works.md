@@ -55,6 +55,20 @@ flowchart TB
     W --> J
     I --> K
     H --> K
+
+    classDef input fill:#dbeafe,stroke:#2563eb,color:#0f172a,stroke-width:2px
+    classDef generation fill:#fef3c7,stroke:#d97706,color:#0f172a,stroke-width:2px
+    classDef execution fill:#ede9fe,stroke:#7c3aed,color:#0f172a,stroke-width:2px
+    classDef evaluation fill:#fee2e2,stroke:#dc2626,color:#0f172a,stroke-width:2px
+    classDef evidence fill:#dcfce7,stroke:#16a34a,color:#0f172a,stroke-width:2px
+    classDef dashboard fill:#e5e7eb,stroke:#374151,color:#0f172a,stroke-width:2px
+
+    class A,P input
+    class B,C generation
+    class D,E,F execution
+    class G,H,I evaluation
+    class W,K evidence
+    class J dashboard
 ```
 
 PNG: [agent-qa-lab-flow.png](diagrams/agent-qa-lab-flow.png)
@@ -113,6 +127,20 @@ flowchart TB
     Log --> Weave
     Log --> Tables
     Log --> Run
+
+    classDef ui fill:#e5e7eb,stroke:#374151,color:#0f172a,stroke-width:2px
+    classDef data fill:#dbeafe,stroke:#2563eb,color:#0f172a,stroke-width:2px
+    classDef core fill:#fef3c7,stroke:#d97706,color:#0f172a,stroke-width:2px
+    classDef workflow fill:#ede9fe,stroke:#7c3aed,color:#0f172a,stroke-width:2px
+    classDef eval fill:#fee2e2,stroke:#dc2626,color:#0f172a,stroke-width:2px
+    classDef wandb fill:#dcfce7,stroke:#16a34a,color:#0f172a,stroke-width:2px
+
+    class S,CLI ui
+    class Policy,Seeds,Tests data
+    class TG,Runner,Agents,Prompts,Log core
+    class Triage,Lookup,Decision,Response workflow
+    class Eval,Judge eval
+    class Weave,Tables,Run wandb
 ```
 
 PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)

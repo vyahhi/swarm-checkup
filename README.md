@@ -4,6 +4,8 @@ Agents are easy to demo and hard to trust. We built the W&B-powered lab that mak
 
 Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications. It turns a few example tasks into a stress-test suite, traces agent execution in W&B Weave, scores failures, and compares improved prompt variants.
 
+![Agent QA Lab flow](docs/diagrams/agent-qa-lab-flow.png)
+
 The current repository contains planning docs for a W&B hackathon build:
 
 - [Short summary](docs/agent-qa-lab-summary.md)
