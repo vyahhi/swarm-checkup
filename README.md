@@ -2,7 +2,7 @@
 
 Agents are easy to demo and hard to trust. We built the W&B-powered lab that makes agents measurable, debuggable, and improvable.
 
-Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications and multi-agent swarms. It turns a few example tasks into a stress-test suite, traces agent execution and inter-agent handoffs in W&B Weave, scores failures, and compares improved prompt variants.
+Agent QA Lab is a W&B-native evaluation and debugging lab for multi-agent swarms. It turns a few example tasks into a stress-test suite, traces agent execution and inter-agent handoffs in W&B Weave, scores failures, and compares improved prompt variants.
 
 ## What It Does
 
@@ -81,7 +81,7 @@ python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_
 
 The skill writes `docs/agent-checkup-report.md`.
 
-For a real multi-agent repo, point the skill at the swarm package or eval runner. It will look for common `run_agent_qa`, `run_swarm_qa`, `eval_agent`, and `eval_swarm` commands, then include coordination and handoff metrics in the report when the harness emits them.
+For a real multi-agent repo, point the skill at the swarm package or eval runner. It will look for common `run_agent_qa`, `run_swarm_qa`, and `eval_swarm` commands, then include coordination and handoff metrics in the report when the harness emits them.
 
 ## Demo Flow
 

@@ -58,7 +58,7 @@ class AgentResult:
     decision: str
     response: str
     latency_ms: int
-    system_type: str = "single_agent"
+    system_type: str = "swarm"
     agent_trace: list[dict[str, Any]] = field(default_factory=list)
     handoff_count: int = 0
     participating_agents: list[str] = field(default_factory=list)

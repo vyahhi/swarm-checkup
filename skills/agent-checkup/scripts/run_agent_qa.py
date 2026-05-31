@@ -49,14 +49,13 @@ class SwarmMetric:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run Agent Checkup and write a reliability report.")
     parser.add_argument("--repo", default=".", help="Repository root to evaluate.")
-    parser.add_argument("--agent-path", help="Path to the target agent file or directory.")
+    parser.add_argument("--agent-path", help="Path to the target swarm package, file, or directory.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
-    parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
     parser.add_argument("--report", default="docs/agent-checkup-report.md", help="Report path relative to repo root.")
     parser.add_argument(
         "--command",
-        help="Optional eval command template. Supports {python}, {cases}, {wandb_mode}, and {system_type}.",
+        help="Optional swarm eval command template. Supports {python}, {cases}, {wandb_mode}, and {system_type}.",
     )
     args = parser.parse_args()
 
@@ -66,7 +65,7 @@ def main() -> int:
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     wandb_mode = resolve_wandb_mode(repo, args.wandb_mode)
-    command = resolve_eval_command(repo, args.cases, wandb_mode, args.system_type, args.command)
+    command = resolve_eval_command(repo, args.cases, wandb_mode, args.command)
     if command:
         completed = run_command(command, repo)
         report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode, agent_path, repo)
@@ -93,33 +92,29 @@ def resolve_repo_root(repo: Path, agent_path: Path | None) -> Path:
     return repo
 
 
-def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, system_type: str, command_template: str | None) -> list[str] | None:
+def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, command_template: str | None) -> list[str] | None:
     python = select_python(repo)
     if command_template:
-        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode, system_type=system_type)
+        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode, system_type="swarm")
         return shlex.split(rendered)
 
-    candidates = candidate_eval_commands(repo, python, cases, wandb_mode, system_type)
+    candidates = candidate_eval_commands(repo, python, cases, wandb_mode)
     return candidates[0] if candidates else None
 
 
-def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str, system_type: str) -> list[list[str]]:
+def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str) -> list[list[str]]:
     candidates: list[list[str]] = []
 
     module_candidates = [
         "agent_qa.run",
         "agent_qa.eval",
-        "agent_eval.run",
-        "agent_eval.eval",
         "swarm_eval.run",
         "swarm_eval.eval",
         "evals.run_agent_qa",
         "evals.run_swarm_qa",
-        "evals.eval_agent",
         "evals.eval_swarm",
         "evaluation.run_agent_qa",
         "evaluation.run_swarm_qa",
-        "evaluation.eval_agent",
         "evaluation.eval_swarm",
     ]
     for module in module_candidates:
@@ -132,16 +127,12 @@ def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str
         repo / "scripts" / "run_swarm_qa.py",
         repo / "scripts" / "run_evals.py",
         repo / "scripts" / "eval_swarm.py",
-        repo / "scripts" / "eval_agent.py",
         repo / "run_swarm_qa.py",
-        repo / "eval_agent.py",
         repo / "eval_swarm.py",
     ]
     for script in script_candidates:
         if script.exists():
             command = [python, str(script.relative_to(repo)), "--cases", str(cases), "--wandb-mode", wandb_mode]
-            if script.name in {"run_agent_qa.py", "run_swarm_qa.py"}:
-                command.extend(["--system-type", system_type])
             candidates.append(command)
 
     return candidates
@@ -267,7 +258,7 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
         "## Target",
         "",
         f"- Repo: `{repo}`",
-        f"- Agent path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
+        f"- Swarm path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
         f"- System type: `{system_type}`",
         f"- Agent mode: `{agent_mode}`",
         "",
@@ -367,26 +358,26 @@ def build_scaffold_report(repo: Path, agent_path: Path | None = None) -> str:
         "",
         f"Generated: {now}",
         "",
-        "No executable agent QA harness was detected.",
+        "No executable swarm QA harness was detected.",
         "",
         "## Target",
         "",
         f"- Repo: `{repo}`",
-        f"- Agent path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
+        f"- Swarm path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
         "",
-        "## Likely Agent Files",
+        "## Likely Swarm Files",
         "",
     ]
     if candidates:
         lines.extend(f"- `{path}`" for path in candidates)
     else:
-        lines.append("- No obvious agent files found.")
+        lines.append("- No obvious swarm files found.")
     lines.extend(
         [
             "",
             "## Smallest Next Step",
             "",
-            "Create a tiny eval harness that accepts a list of test cases, runs the agent or swarm entrypoint, returns structured outputs, and writes a Markdown report. Add W&B Weave tracing around the coordinator, handoffs, retrieval/tool calls, decision step, final response, and evaluator.",
+            "Create a tiny eval harness that accepts a list of test cases, runs the swarm entrypoint, returns structured outputs, and writes a Markdown report. Add W&B Weave tracing around the coordinator, handoffs, retrieval/tool calls, decision step, final response, and evaluator.",
             "",
             "## Suggested Test Categories",
             "",

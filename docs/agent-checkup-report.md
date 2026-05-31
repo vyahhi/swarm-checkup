@@ -11,7 +11,7 @@ Generated: 2026-05-31 19:16:00 UTC
 ## Target
 
 - Repo: `/Users/vyahhi/Documents/Codex/2026-05-31-checkout-vyahhi-s-latest-repo-from/agent-qa-lab`
-- Agent path: `refund_support_swarm`
+- Swarm path: `refund_support_swarm`
 - System type: `swarm`
 - Agent mode: `llm`
 - LLM provider: `wandb_inference`

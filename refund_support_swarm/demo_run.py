@@ -12,18 +12,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run the Agent QA Lab demo pipeline.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
-    parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
     args = parser.parse_args()
 
     settings = load_settings(wandb_mode=args.wandb_mode)
     if not llm_available():
         parser.error("WANDB_API_KEY is required because agents run through W&B Inference.")
 
-    with wandb_session(settings, run_name=f"agent-qa-lab-{args.system_type}-demo") as run:
+    with wandb_session(settings, run_name="agent-qa-lab-swarm-demo") as run:
         cases, records, summaries = build_demo_run(
             case_count=args.cases,
             include_variants=True,
-            system_type=args.system_type,
             model=settings.demo_model,
         )
         eval_df = records_to_dataframe(records)
@@ -32,7 +30,7 @@ def main() -> int:
         log_demo_tables(run, eval_df, summary_df, failure_df)
 
     print(f"cases={len(cases)}")
-    print(f"system_type={args.system_type}")
+    print("system_type=swarm")
     print("agent_mode=llm")
     print("llm_provider=wandb_inference")
     print(f"model={settings.demo_model}")

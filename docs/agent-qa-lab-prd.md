@@ -4,14 +4,14 @@
 
 ### 1.1 Product
 
-Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications and multi-agent swarms. It takes a small number of seed examples, generates a focused stress-test suite, runs an agent workflow against those cases, traces execution and handoffs in W&B Weave, evaluates results, groups failures, and compares improved variants.
+Agent QA Lab is a W&B-native evaluation and debugging lab for multi-agent swarms. It takes a small number of seed examples, generates a focused stress-test suite, runs a swarm workflow against those cases, traces execution and handoffs in W&B Weave, evaluates results, groups failures, and compares improved variants.
 
 ### 1.2 Hackathon Positioning
 
 Most hackathon projects will demonstrate an agent completing tasks. Agent QA Lab demonstrates the reliability workflow needed after an agent demo works:
 
 1. Generate realistic tests.
-2. Run the agent or swarm.
+2. Run the swarm.
 3. Inspect traces and handoffs.
 4. Score output and coordination failures.
 5. Improve prompts.
@@ -22,7 +22,7 @@ The project should feel like "CI for agents" with W&B as the system of record.
 
 ### 1.3 One-Line Pitch
 
-Agent QA Lab turns a few example agent or swarm tasks into a W&B-powered test bench for making agent systems measurable, debuggable, and improvable.
+Agent QA Lab turns a few example swarm tasks into a W&B-powered test bench for making multi-agent systems measurable, debuggable, and improvable.
 
 ### 1.4 Primary Demo Domain
 
@@ -55,7 +55,7 @@ The agent answers refund requests using a fake company policy. The baseline inte
 
 - Support arbitrary external agents in the hackathon MVP.
 - Build a production auth or multi-tenant system.
-- Build a general no-code agent workflow builder.
+- Build a general no-code swarm workflow builder.
 - Use real customer data.
 - Replace W&B dashboards with a custom analytics product.
 - Perfectly evaluate every possible support response.
@@ -636,7 +636,7 @@ The demo should aim for:
 2. Load policy and seed tickets.
 3. Generate or load stress-test cases.
 4. Save the test suite for reuse.
-5. Run baseline agent workflow on every case.
+5. Run baseline swarm workflow on every case.
 6. Evaluate every baseline output.
 7. Aggregate baseline metrics and failure categories.
 8. Generate prompt variants from failure summaries.

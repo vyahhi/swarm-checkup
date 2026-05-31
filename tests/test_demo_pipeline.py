@@ -52,7 +52,7 @@ def test_summary_has_failure_taxonomy() -> None:
 
 
 def test_swarm_records_include_handoffs() -> None:
-    _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm")
+    _, records, summaries = build_demo_run(case_count=8, include_variants=True)
     first_record = records["baseline"][0]
     assert first_record.result.system_type == "swarm"
     assert first_record.result.handoff_count >= 6
@@ -66,7 +66,7 @@ def test_swarm_records_include_handoffs() -> None:
 
 
 def test_wandb_inference_marks_agent_results() -> None:
-    _, records, _ = build_demo_run(case_count=1, include_variants=False, system_type="swarm")
+    _, records, _ = build_demo_run(case_count=1, include_variants=False)
     result = records["baseline"][0].result
     assert result.model == "meta-llama/Llama-3.1-8B-Instruct"
     assert result.triage["llm_used"] is True
@@ -105,6 +105,19 @@ def test_cli_requires_wandb_key() -> None:
     )
     assert completed.returncode == 2
     assert "WANDB_API_KEY is required" in completed.stderr
+
+
+def test_cli_help_is_swarm_only() -> None:
+    completed = subprocess.run(
+        [sys.executable, "-m", "refund_support_swarm.demo_run", "--help"],
+        cwd=Path(__file__).resolve().parents[1],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 0
+    assert "--system-type" not in completed.stdout
+    assert "single_agent" not in completed.stdout
 
 
 def test_wandb_auto_mode_uses_api_key(monkeypatch) -> None:
