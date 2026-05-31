@@ -33,12 +33,12 @@ class VariantResult:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run Agent QA Lab and write a reliability report.")
+    parser = argparse.ArgumentParser(description="Run Agent Checkup and write a reliability report.")
     parser.add_argument("--repo", default=".", help="Repository root to evaluate.")
     parser.add_argument("--agent-path", help="Path to the target agent file or directory.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
-    parser.add_argument("--report", default="docs/agent-qa-skill-report.md", help="Report path relative to repo root.")
+    parser.add_argument("--report", default="docs/agent-checkup-report.md", help="Report path relative to repo root.")
     parser.add_argument(
         "--command",
         help="Optional eval command template. Supports {python}, {cases}, and {wandb_mode}.",
@@ -166,7 +166,7 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines = [
-        "# Agent QA Skill Report",
+        "# Agent Checkup Report",
         "",
         f"Generated: {now}",
         "",
@@ -251,7 +251,7 @@ def build_scaffold_report(repo: Path, agent_path: Path | None = None) -> str:
     candidates = find_agent_candidates(agent_path if agent_path else repo, repo)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     lines = [
-        "# Agent QA Scaffold Report",
+        "# Agent Checkup Scaffold Report",
         "",
         f"Generated: {now}",
         "",

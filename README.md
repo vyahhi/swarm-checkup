@@ -24,10 +24,10 @@ Each ticket is run through a baseline agent and improved prompt variants. The ev
 ## Repository Guide
 
 - [Demo agent package](refund_support_agent/)
-- [Claude/Codex skill](skills/agent-qa-lab/SKILL.md)
+- [Claude/Codex skill](skills/agent-checkup/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
 - [Fallback demo test suite](data/fallback_tests.json)
-- [Generated skill report](docs/agent-qa-skill-report.md)
+- [Generated skill report](docs/agent-checkup-report.md)
 - [Short summary](docs/agent-qa-lab-summary.md)
 - [How it works](docs/how-it-works.md)
 - [Product requirements document](docs/agent-qa-lab-prd.md)
@@ -45,7 +45,7 @@ Use `--wandb-mode online` to log Weave traces and W&B Tables.
 
 ## Install and Run the Skill
 
-The repo includes a portable Claude/Codex skill at `skills/agent-qa-lab`.
+The repo includes a portable Claude/Codex skill at `skills/agent-checkup`.
 
 1. Install the skill locally:
 
@@ -56,28 +56,28 @@ python3 scripts/install_skill.py
 2. Run it with Codex against the demo agent:
 
 ```bash
-codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent."
+codex exec -C . "Use agent-checkup skill for agent refund_support_agent."
 ```
 
 Explicit local-only run:
 
 ```bash
-codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent. Run 24 cases. Run W&B disabled."
+codex exec -C . "Use agent-checkup skill for agent refund_support_agent. Run 24 cases. Run W&B disabled."
 ```
 
 Direct script fallback:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --agent-path refund_support_agent --cases 24 --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_agent --cases 24 --wandb-mode disabled
 ```
 
-The skill writes `docs/agent-qa-skill-report.md`.
+The skill writes `docs/agent-checkup-report.md`.
 
 ## Demo Flow
 
 1. Run the CLI or skill command.
 2. Compare the baseline and variant pass rates in the terminal output.
-3. Open `docs/agent-qa-skill-report.md` for the generated reliability report.
+3. Open `docs/agent-checkup-report.md` for the generated reliability report.
 4. If W&B mode is online, open the W&B run link to view traces and logged tables.
 
 ## W&B Project

@@ -1,9 +1,9 @@
 ---
-name: agent-qa-lab
+name: agent-checkup
 description: W&B-backed workflow for evaluating, red-teaming, debugging, and improving agentic applications. Use when the user asks to test an agent, harden an agent, generate agent evals, inspect agent failures, compare prompt/model variants, create a reliability report, or add W&B Weave tracing in a repository.
 ---
 
-# Agent QA Lab
+# Agent Checkup
 
 Use this skill to turn an agent prototype into a measurable reliability loop: generate or load tests, run the agent, trace execution, score results, compare variants, and write a report.
 
@@ -32,28 +32,28 @@ The skill is compatible with Claude and Codex because it uses a standard `SKILL.
 Run the bundled script from any repo:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
 ```
 
 When the user names a specific agent path, pass it through:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode disabled
 ```
 
 For W&B logging:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode online
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode online
 ```
 
 The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:
 
 ```bash
-python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode}"
+python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode}"
 ```
 
-It writes a report to `docs/agent-qa-skill-report.md` by default.
+It writes a report to `docs/agent-checkup-report.md` by default.
 
 ## Report Requirements
 
