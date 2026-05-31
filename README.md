@@ -56,13 +56,13 @@ python3 scripts/install_skill.py
 2. Run it with Codex against the demo agent:
 
 ```bash
-codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent. Run 24 cases with W&B disabled."
+codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent."
 ```
 
-With W&B logging:
+Explicit local-only run:
 
 ```bash
-codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent. Run 24 cases with W&B online."
+codex exec -C . "Use agent-qa-lab skill for agent refund_support_agent. Run 24 cases. Run W&B disabled."
 ```
 
 Direct script fallback:
