@@ -1,11 +1,11 @@
 # Agent QA Skill Report
 
-Generated: 2026-05-31 16:27:10 UTC
+Generated: 2026-05-31 16:58:38 UTC
 
 ## Command
 
 ```bash
-/Users/vyahhi/projects/sundai/20260531/.venv/bin/python -m agent_qa_lab.demo_run --cases 24 --wandb-mode disabled
+/Users/vyahhi/projects/sundai/20260531/.venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled
 ```
 
 ## Result

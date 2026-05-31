@@ -436,13 +436,13 @@ NFR-1: The live demo should complete in under five minutes.
 
 NFR-2: The fast demo mode should complete in under two minutes with 10-15 cases.
 
-NFR-3: The app must use fake data only.
+NFR-3: The harness must use fake data only.
 
-NFR-4: The app must read W&B credentials from `.env` or environment variables.
+NFR-4: The harness must read W&B credentials from `.env` or environment variables.
 
 NFR-5: The workflow should tolerate one-off LLM failures with retries or fallbacks.
 
-NFR-6: The app should produce deterministic enough results for a live presentation.
+NFR-6: The harness should produce deterministic enough results for a live presentation.
 
 NFR-7: The UI should be understandable without training.
 
@@ -584,7 +584,7 @@ The demo should aim for:
 
 ### 12.1 Components
 
-- Streamlit app: local control panel and lightweight dashboard.
+- CLI and skill runner: local control surface and report generator.
 - Agent runtime: Python orchestration for the support workflow.
 - LLM provider wrapper: shared model calls for agents, test generation, judging, and prompt improvement.
 - Weave instrumentation: tracing for all agent and evaluator operations.
@@ -596,8 +596,9 @@ The demo should aim for:
 ```text
 .
 ├── .env
-├── app.py
 ├── pyproject.toml
+├── scripts/
+│   └── run_agent_qa.py
 ├── docs/
 │   ├── agent-qa-lab-summary.md
 │   └── agent-qa-lab-prd.md
@@ -634,29 +635,27 @@ The demo should aim for:
 11. Log tables, summaries, and artifacts to W&B.
 12. Display local summary and W&B links.
 
-## 13. UX Requirements
+## 13. CLI and Report Requirements
 
-### 13.1 Main Screen
+### 13.1 Primary Interface
 
-The first screen should be the working product, not a landing page.
+The primary interface should be a CLI or Claude/Codex skill command that runs the QA loop and writes a Markdown report.
 
-Required layout:
+Required outputs:
 
-- Header with project name and W&B project link.
-- Left column for controls.
-- Main area for current run status and comparison results.
-- Bottom section for representative failures and fixed cases.
+- Terminal summary with baseline and variant metrics.
+- Markdown report with command, result summary, variant table, recommendation, and W&B link when available.
+- W&B run containing traces and tables when online mode is enabled.
 
-### 13.2 Controls
+### 13.2 Commands
 
-Controls:
+Commands:
 
-- Load Demo Suite
-- Generate Stress Tests
-- Run Baseline
-- Generate Prompt Variants
-- Run Variants
-- Open W&B Project
+- Run demo harness.
+- Run skill wrapper.
+- Run with W&B disabled.
+- Run with W&B online.
+- Run with an explicit harness command for non-demo repos.
 
 ### 13.3 States
 
@@ -691,14 +690,14 @@ Show:
 Deliverables:
 
 - Python project setup
-- Streamlit app shell
+- CLI and skill entrypoint
 - `.env` loading
 - W&B/Weave initialization
 - Static policy and fallback tests
 
 Exit criteria:
 
-- App runs locally.
+- CLI runs locally.
 - W&B project initializes.
 - A dummy traced operation appears in Weave.
 
@@ -764,7 +763,7 @@ Deliverables:
 - Cached demo suite
 - Stable seed data
 - Final report text
-- Clean UI styling
+- Clean report formatting
 
 Exit criteria:
 
@@ -775,7 +774,7 @@ Exit criteria:
 
 ### First 2 Hours
 
-- Working Streamlit app.
+- Working CLI demo.
 - Static support policy and fallback tests.
 - W&B/Weave traces visible.
 - Baseline workflow runs end to end.
@@ -807,7 +806,7 @@ Mitigations:
 
 - Use static fallback tests.
 - Cache generated tests.
-- Default the demo to "Load Demo Suite."
+- Default the demo to the deterministic fallback suite.
 
 ### Evaluator Is Inconsistent
 
@@ -859,12 +858,12 @@ Mitigations:
 
 The MVP is complete when:
 
-- A user can run the app locally with `.env` configuration.
+- A user can run the harness locally with `.env` configuration.
 - The demo suite contains at least 20 cases.
 - Baseline and at least one variant can run on the same suite.
 - Every run is traced in Weave.
 - Every case has an evaluation result.
-- The app shows baseline vs variant metrics.
+- The report shows baseline vs variant metrics.
 - W&B contains structured results for inspection.
 - At least one failure can be explained through a Weave trace.
 - At least one variant visibly improves the baseline.
@@ -881,4 +880,3 @@ The MVP is complete when:
 - Scheduled eval runs.
 - Team dashboards by agent, owner, and deployment version.
 - CI integration that blocks prompt changes when regression count exceeds threshold.
-

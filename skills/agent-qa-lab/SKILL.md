@@ -1,6 +1,6 @@
 ---
 name: agent-qa-lab
-description: W&B-backed workflow for evaluating, red-teaming, debugging, and improving agentic applications. Use when the user asks to test an agent, harden an agent, generate agent evals, inspect agent failures, compare prompt/model variants, create a reliability report, add W&B Weave tracing, or run an Agent QA Lab demo in a repository.
+description: W&B-backed workflow for evaluating, red-teaming, debugging, and improving agentic applications. Use when the user asks to test an agent, harden an agent, generate agent evals, inspect agent failures, compare prompt/model variants, create a reliability report, or add W&B Weave tracing in a repository.
 ---
 
 # Agent QA Lab

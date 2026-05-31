@@ -33,7 +33,7 @@ flowchart TB
         K[W&B Tables and run summary]
     end
 
-    J[Streamlit dashboard]
+    J[Markdown report and CLI summary]
 
     A --> B
     P --> B
@@ -78,7 +78,7 @@ PNG: [agent-qa-lab-flow.png](diagrams/agent-qa-lab-flow.png)
 ```mermaid
 flowchart TB
     subgraph UI[Local UI]
-        S[Streamlit app]
+        S[Skill runner]
         CLI[CLI smoke test]
     end
 
@@ -147,13 +147,13 @@ PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)
 
 ## What Happens During a Demo
 
-1. **Load Demo Suite** loads deterministic refund-support stress tests from `data/fallback_tests.json`.
-2. **Run Baseline + Variants** runs the same cases against the flawed baseline and three improved prompt variants.
+1. The demo harness loads deterministic refund-support stress tests from `data/fallback_tests.json`.
+2. The same cases run against the flawed baseline and three improved prompt variants.
 3. Each case moves through the support workflow: triage, policy lookup, refund decision, response drafting, and evaluation.
 4. `@weave.op` wraps the major steps so W&B Weave can show a trace tree for each run.
 5. The evaluator assigns pass/fail, numeric scores, and a failure category.
-6. The dashboard shows pass-rate improvement, fixed cases, remaining failures, and representative examples.
-7. In online W&B mode, the app logs evaluation tables and summaries to the `agent-qa-lab` W&B project.
+6. The CLI and Markdown report show pass-rate improvement, fixed cases, remaining failures, and representative examples.
+7. In online W&B mode, the harness logs evaluation tables and summaries to the `agent-qa-lab` W&B project.
 
 ## Why W&B Matters Here
 

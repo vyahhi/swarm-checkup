@@ -10,12 +10,12 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 - Runs the same cases through a flawed baseline agent and three improved prompt variants.
 - Evaluates each response for policy correctness, decision correctness, completeness, tone, and injection resistance.
 - Groups failures into categories such as missing required information, ignored policy constraints, and prompt-injection vulnerability.
-- Shows baseline-vs-variant metrics in a Streamlit dashboard.
+- Writes a Markdown reliability report and CLI summary.
 - Logs Weave traces and W&B Tables when W&B online mode is enabled.
 
 ## Example Scenario
 
-The diagram below shows the demo workflow for a fake customer-support refund agent. The app starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
+The diagram below shows the demo workflow for a fake customer-support refund agent. The harness starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
 
 Each ticket is run through a baseline agent and improved prompt variants. The evaluator checks whether the agent made the right refund decision, followed policy, handled missing information, resisted injection, and used an acceptable tone. W&B Weave captures the agent steps as traces, while W&B Tables compare the baseline and variants case by case.
 
@@ -23,7 +23,6 @@ Each ticket is run through a baseline agent and improved prompt variants. The ev
 
 ## Repository Guide
 
-- [Streamlit app](app.py)
 - [Demo package](agent_qa_lab/)
 - [Claude/Codex skill](skills/agent-qa-lab/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
@@ -34,21 +33,15 @@ Each ticket is run through a baseline agent and improved prompt variants. The ev
 - [Product requirements document](docs/agent-qa-lab-prd.md)
 - [Five-slide hackathon deck](docs/agent-qa-lab-slide-deck.md)
 
-## Run the Demo
+## Run the Demo CLI
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
-.venv/bin/streamlit run app.py
+.venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled
 ```
 
-CLI smoke test:
-
-```bash
-.venv/bin/python -m agent_qa_lab.demo_run --cases 24 --wandb-mode disabled
-```
-
-Use `--wandb-mode online` or select online mode in the app to log Weave traces and W&B Tables.
+Use `--wandb-mode online` to log Weave traces and W&B Tables.
 
 ## Run the Skill
 
@@ -70,12 +63,10 @@ The skill writes `docs/agent-qa-skill-report.md`.
 
 ## Demo Flow
 
-1. Open the Streamlit app.
-2. Click `Load Demo Suite`.
-3. Click `Run Baseline + Variants`.
-4. Compare the baseline and variant pass rates.
-5. Inspect representative failures and fixed cases.
-6. Open the W&B run link to view traces and logged tables.
+1. Run the CLI or skill command.
+2. Compare the baseline and variant pass rates in the terminal output.
+3. Open `docs/agent-qa-skill-report.md` for the generated reliability report.
+4. If W&B mode is online, open the W&B run link to view traces and logged tables.
 
 ## W&B Project
 
@@ -87,4 +78,4 @@ WANDB_ENTITY=...
 AGENT_QA_WANDB_PROJECT=agent-qa-lab
 ```
 
-The app also supports offline and disabled W&B modes for local-only demos.
+The CLI and skill also support offline and disabled W&B modes for local-only demos.

@@ -79,11 +79,14 @@ def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str
     candidates: list[list[str]] = []
 
     module_candidates = [
-        "agent_qa_lab.demo_run",
-        "agent_qa.demo_run",
-        "agent_eval.demo_run",
-        "evals.demo_run",
-        "evaluation.demo_run",
+        "agent_qa.run",
+        "agent_qa.eval",
+        "agent_eval.run",
+        "agent_eval.eval",
+        "evals.run_agent_qa",
+        "evals.eval_agent",
+        "evaluation.run_agent_qa",
+        "evaluation.eval_agent",
     ]
     for module in module_candidates:
         module_path = repo / Path(module.replace(".", "/") + ".py")
@@ -235,7 +238,7 @@ def build_scaffold_report(repo: Path) -> str:
         "",
         f"Generated: {now}",
         "",
-        "No executable Agent QA Lab harness was detected.",
+        "No executable agent QA harness was detected.",
         "",
         "## Likely Agent Files",
         "",
