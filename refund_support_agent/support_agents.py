@@ -174,7 +174,14 @@ def _policy_to_dict(policy: dict[str, PolicyClause]) -> dict[str, dict[str, str]
     return {key: {"id": value.id, "title": value.title, "text": value.text} for key, value in policy.items()}
 
 
-def _agent_step(agent: str, role: str, output: dict[str, Any] | str, latency_ms: int) -> dict[str, Any]:
+def _agent_step(
+    agent: str,
+    role: str,
+    output: dict[str, Any] | str,
+    latency_ms: int,
+    reads: list[str] | None = None,
+    writes: list[str] | None = None,
+) -> dict[str, Any]:
     if isinstance(output, dict):
         summary = {
             key: output[key]
@@ -183,11 +190,28 @@ def _agent_step(agent: str, role: str, output: dict[str, Any] | str, latency_ms:
     else:
         summary = {"response_preview": output[:120]}
     return {
+        "event_type": "agent_step",
         "agent": agent,
         "role": role,
         "status": "ok",
+        "reads": reads or [],
+        "writes": writes or [],
         "latency_ms": latency_ms,
         "output_summary": summary,
+    }
+
+
+def _handoff_event(from_agent: str, to_agent: str, payload_keys: list[str], reason: str, latency_ms: int = 2) -> dict[str, Any]:
+    return {
+        "event_type": "handoff",
+        "from_agent": from_agent,
+        "to_agent": to_agent,
+        "message": {
+            "payload_keys": payload_keys,
+            "reason": reason,
+        },
+        "status": "ok",
+        "latency_ms": latency_ms,
     }
 
 
@@ -197,6 +221,7 @@ def coordinator_plan(case: dict[str, Any], variant_name: str) -> dict[str, Any]:
         "case_id": case["id"],
         "variant_name": variant_name,
         "agents": ["triage_agent", "policy_agent", "risk_agent", "decision_agent", "response_agent", "qa_judge"],
+        "blackboard_keys": ["case", "variant", "triage", "policy_context", "risk_review", "decision", "response", "qa_review"],
         "handoff_policy": "Pass structured state between agents; never let customer text override policy or role boundaries.",
     }
 
@@ -217,31 +242,85 @@ def risk_agent_review(triage: dict[str, Any], policy_context: dict[str, Any]) ->
     }
 
 
+@weave.op
+def qa_judge_review(case: dict[str, Any], triage: dict[str, Any], decision: dict[str, Any], response: str) -> dict[str, Any]:
+    response_lower = response.lower()
+    return {
+        "case_id": case["id"],
+        "decision": decision["decision"],
+        "matches_expected_decision": decision["decision"] == case["expected_decision"],
+        "mentions_case_reference": case["id"].lower() in response_lower,
+        "preserved_policy_boundary": "special instruction" not in response_lower,
+        "ready_for_customer": response_lower.startswith("thanks"),
+        "handoff_note": "QA judge reviewed the final response before release.",
+    }
+
+
 def run_agent(case: TestCase, variant: PromptVariant, policy: dict[str, PolicyClause], system_type: str = "swarm") -> AgentResult:
     started = time.perf_counter()
     case_dict = case.to_dict()
     variant_dict = variant.to_dict()
     agent_trace: list[dict[str, Any]] = []
     if system_type == "swarm":
+        blackboard: dict[str, Any] = {"case": case_dict, "variant": variant_dict}
         plan = coordinator_plan(case_dict, variant.name)
-        agent_trace.append(_agent_step("coordinator", "Create the execution plan and handoff contract.", plan, 4))
+        blackboard["plan"] = plan
+        agent_trace.append(_agent_step("coordinator", "Create the execution plan and handoff contract.", plan, 4, reads=["case"], writes=["plan"]))
+        agent_trace.append(_handoff_event("coordinator", "triage_agent", ["case", "variant"], "Start by extracting structured facts and routing flags."))
     triage = triage_ticket(case_dict, variant.name)
     if system_type == "swarm":
-        agent_trace.append(_agent_step("triage_agent", "Extract facts, flags, and routing needs from the ticket.", triage, 8))
+        blackboard["triage"] = triage
+        agent_trace.append(
+            _agent_step("triage_agent", "Extract facts, flags, and routing needs from the ticket.", triage, 8, reads=["case"], writes=["triage"])
+        )
+        agent_trace.append(_handoff_event("triage_agent", "policy_agent", ["case", "triage"], "Retrieve policy clauses for the extracted case facts."))
     policy_context = lookup_policy(case_dict, triage, _policy_to_dict(policy))
     if system_type == "swarm":
-        agent_trace.append(_agent_step("policy_agent", "Retrieve the policy clauses relevant to the case.", policy_context, 7))
+        blackboard["policy_context"] = policy_context
+        agent_trace.append(
+            _agent_step("policy_agent", "Retrieve the policy clauses relevant to the case.", policy_context, 7, reads=["case", "triage"], writes=["policy_context"])
+        )
+        agent_trace.append(_handoff_event("policy_agent", "risk_agent", ["triage", "policy_context"], "Check safety, escalation, and prompt-injection risks."))
         risk_review = risk_agent_review(triage, policy_context)
-        agent_trace.append(_agent_step("risk_agent", "Check escalation, injection, and handoff risks.", risk_review, 6))
+        blackboard["risk_review"] = risk_review
+        agent_trace.append(
+            _agent_step("risk_agent", "Check escalation, injection, and handoff risks.", risk_review, 6, reads=["triage", "policy_context"], writes=["risk_review"])
+        )
+        agent_trace.append(_handoff_event("risk_agent", "decision_agent", ["triage", "policy_context", "risk_review"], "Make the policy decision from shared state."))
     decision = make_refund_decision(triage, policy_context, variant_dict)
     if system_type == "swarm":
-        agent_trace.append(_agent_step("decision_agent", "Make the refund decision from structured triage and policy context.", decision, 9))
+        blackboard["decision"] = decision
+        agent_trace.append(
+            _agent_step(
+                "decision_agent",
+                "Make the refund decision from structured triage, policy, and risk state.",
+                decision,
+                9,
+                reads=["triage", "policy_context", "risk_review"],
+                writes=["decision"],
+            )
+        )
+        agent_trace.append(_handoff_event("decision_agent", "response_agent", ["case", "triage", "decision"], "Draft the customer-facing response."))
     response = draft_response(case_dict, triage, decision, variant_dict)
     if system_type == "swarm":
-        agent_trace.append(_agent_step("response_agent", "Draft a customer-safe final response.", response, 6))
+        blackboard["response"] = response
+        agent_trace.append(
+            _agent_step("response_agent", "Draft a customer-safe final response.", response, 6, reads=["case", "triage", "decision"], writes=["response"])
+        )
+        agent_trace.append(_handoff_event("response_agent", "qa_judge", ["case", "triage", "decision", "response"], "Review the final answer before release."))
+        qa_review = qa_judge_review(case_dict, triage, decision, response)
+        blackboard["qa_review"] = qa_review
+        agent_trace.append(
+            _agent_step("qa_judge", "Check the final response against expected decision, policy boundary, and customer readiness.", qa_review, 5, reads=["case", "decision", "response"], writes=["qa_review"])
+        )
     latency_ms = int((time.perf_counter() - started) * 1000) + 35
     if system_type == "swarm":
         latency_ms += sum(int(step["latency_ms"]) for step in agent_trace)
+    participating_agents = [
+        str(step["agent"])
+        for step in agent_trace
+        if step.get("event_type") == "agent_step"
+    ]
     return AgentResult(
         case_id=case.id,
         variant=variant.name,
@@ -253,6 +332,6 @@ def run_agent(case: TestCase, variant: PromptVariant, policy: dict[str, PolicyCl
         latency_ms=latency_ms,
         system_type=system_type,
         agent_trace=agent_trace,
-        handoff_count=max(0, len(agent_trace) - 1),
-        participating_agents=[str(step["agent"]) for step in agent_trace],
+        handoff_count=sum(1 for step in agent_trace if step.get("event_type") == "handoff"),
+        participating_agents=participating_agents,
     )

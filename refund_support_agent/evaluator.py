@@ -93,12 +93,12 @@ def evaluate_response(case: dict[str, Any], result: dict[str, Any]) -> dict[str,
     coordination = 1.0
     if agent_result.system_type == "swarm":
         trace_agents = {step.get("agent") for step in agent_result.agent_trace}
-        required_agents = {"coordinator", "triage_agent", "policy_agent", "decision_agent", "response_agent"}
+        required_agents = {"coordinator", "triage_agent", "policy_agent", "risk_agent", "decision_agent", "response_agent", "qa_judge"}
         if not required_agents.issubset(trace_agents):
             coordination = 0.4
         elif any(step.get("status") == "error" for step in agent_result.agent_trace):
             coordination = 0.2
-        elif agent_result.handoff_count < 4:
+        elif agent_result.handoff_count < 6:
             coordination = 0.7
     if category == "none" and coordination < 0.75:
         category = "agent_coordination_failure"

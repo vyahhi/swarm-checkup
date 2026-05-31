@@ -1,6 +1,6 @@
 # Agent Checkup Report
 
-Generated: 2026-05-31 17:27:36 UTC
+Generated: 2026-05-31 17:38:42 UTC
 
 ## Command
 
@@ -39,10 +39,10 @@ Generated: 2026-05-31 17:27:36 UTC
 
 | Variant | Coordination | Avg Handoffs | Avg Latency |
 |---|---:|---:|---:|
-| `baseline` | 100.0% | 5.0 | 75.0 ms |
-| `variant_a_policy_grounded` | 100.0% | 5.0 | 75.0 ms |
-| `variant_b_injection_resistant` | 100.0% | 5.0 | 75.0 ms |
-| `variant_c_decision_rubric` | 100.0% | 5.0 | 75.0 ms |
+| `baseline` | 100.0% | 6.0 | 92.0 ms |
+| `variant_a_policy_grounded` | 100.0% | 6.0 | 92.0 ms |
+| `variant_b_injection_resistant` | 100.0% | 6.0 | 92.0 ms |
+| `variant_c_decision_rubric` | 100.0% | 6.0 | 92.0 ms |
 
 ## Recommendation
 
@@ -60,10 +60,10 @@ variant_b_injection_resistant      0.875       0.919            6            0 m
     variant_c_decision_rubric      1.000       1.000            9            0                         none
 swarm_metrics
                       variant  coordination_score  avg_handoffs  avg_latency_ms
-                     baseline                 1.0           5.0            75.0
-    variant_a_policy_grounded                 1.0           5.0            75.0
-variant_b_injection_resistant                 1.0           5.0            75.0
-    variant_c_decision_rubric                 1.0           5.0            75.0
+                     baseline                 1.0           6.0            92.0
+    variant_a_policy_grounded                 1.0           6.0            92.0
+variant_b_injection_resistant                 1.0           6.0            92.0
+    variant_c_decision_rubric                 1.0           6.0            92.0
 ```
 
 ## Stderr

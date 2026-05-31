@@ -8,7 +8,8 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 
 - Loads a deterministic refund-support stress-test suite.
 - Runs the same cases through a flawed baseline support swarm and three improved prompt variants.
-- Records coordinator, triage, policy, risk, decision, response, and judge handoffs for each case.
+- Records coordinator, triage, policy, risk, decision, response, and judge agents for each case.
+- Captures explicit inter-agent handoff messages with payload keys, reasons, shared-state reads, and shared-state writes.
 - Evaluates each response for policy correctness, decision correctness, completeness, tone, and injection resistance.
 - Scores coordination health so handoff failures are visible alongside answer quality.
 - Groups failures into categories such as missing required information, ignored policy constraints, and prompt-injection vulnerability.
@@ -19,7 +20,7 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 
 The diagram below shows the demo workflow for a fake customer-support refund swarm. The harness starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
 
-Each ticket is run through a baseline support swarm and improved prompt variants. The evaluator checks whether the system made the right refund decision, followed policy, handled missing information, resisted injection, coordinated handoffs, and used an acceptable tone. W&B Weave captures the coordinator, specialist agents, and judge as traces, while W&B Tables compare the baseline and variants case by case.
+Each ticket is run through a baseline support swarm and improved prompt variants. The evaluator checks whether the system made the right refund decision, followed policy, handled missing information, resisted injection, coordinated handoffs, and used an acceptable tone. W&B Weave captures the coordinator, specialist agents, handoff messages, shared-state access, and judge as traces, while W&B Tables compare the baseline and variants case by case.
 
 ![Agent QA Lab flow](docs/diagrams/agent-qa-lab-flow.png)
 

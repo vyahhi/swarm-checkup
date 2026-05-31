@@ -37,10 +37,12 @@ def test_swarm_records_include_handoffs() -> None:
     _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm")
     first_record = records["baseline"][0]
     assert first_record.result.system_type == "swarm"
-    assert first_record.result.handoff_count >= 4
-    assert {"coordinator", "triage_agent", "policy_agent", "decision_agent", "response_agent"}.issubset(
+    assert first_record.result.handoff_count >= 6
+    assert {"coordinator", "triage_agent", "policy_agent", "risk_agent", "decision_agent", "response_agent", "qa_judge"}.issubset(
         set(first_record.result.participating_agents)
     )
+    assert any(step["event_type"] == "handoff" for step in first_record.result.agent_trace)
+    assert any(step.get("to_agent") == "qa_judge" for step in first_record.result.agent_trace)
     assert first_record.evaluation.coordination == 1.0
     assert all(summary.coordination_score >= 0.75 for summary in summaries)
 
