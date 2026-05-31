@@ -36,7 +36,7 @@ Agent QA Lab runs the flawed agent through generated test cases and produces:
 This is not just logging. W&B is the product layer.
 
 - Weave tracing: inspect agent reasoning, tool calls, handoffs, latency, and errors
-- Evaluations: combine LLM-as-judge scores with deterministic policy checks
+- Evaluations: combine LLM-as-judge scores with rule-based policy checks
 - Tables: compare row-level failures before and after fixes
 - Artifacts: version policy docs, prompts, generated test sets, and eval results
 - Reports: produce the final judge-facing story

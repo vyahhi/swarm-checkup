@@ -62,7 +62,7 @@ class AgentResult:
     agent_trace: list[dict[str, Any]] = field(default_factory=list)
     handoff_count: int = 0
     participating_agents: list[str] = field(default_factory=list)
-    model: str = "deterministic-demo-agent"
+    model: str = "meta-llama/Llama-3.1-8B-Instruct"
     trace_url: str = ""
 
     def to_dict(self) -> dict[str, Any]:

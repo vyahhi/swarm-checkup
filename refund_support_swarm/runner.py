@@ -30,22 +30,19 @@ def run_variant_suite(cases: list[dict], variant: dict) -> list[dict]:
             prompt_variant,
             policy,
             system_type=variant.get("system_type", "swarm"),
-            agent_mode=variant.get("agent_mode", "auto"),
-            model=variant.get("model", "gpt-4o-mini"),
+            model=variant.get("model", "meta-llama/Llama-3.1-8B-Instruct"),
         )
         evaluation = evaluate_case(case, result)
         records.append(RunRecord(case, result, evaluation).table_row())
     return records
 
 
-def run_suite(
-    cases: list[TestCase], variant: PromptVariant, system_type: str = "swarm", agent_mode: str = "auto", model: str = "gpt-4o-mini"
-) -> list[RunRecord]:
+def run_suite(cases: list[TestCase], variant: PromptVariant, system_type: str = "swarm", model: str = "meta-llama/Llama-3.1-8B-Instruct") -> list[RunRecord]:
     # Keep local runs single-pass so Weave traces match exactly one execution per case.
     policy = load_policy_clauses()
     records: list[RunRecord] = []
     for case in cases:
-        result = run_agent(case, variant, policy, system_type=system_type, agent_mode=agent_mode, model=model)
+        result = run_agent(case, variant, policy, system_type=system_type, model=model)
         evaluation = evaluate_case(case, result)
         records.append(RunRecord(case, result, evaluation))
     return records
@@ -55,11 +52,10 @@ def run_all_variants(
     cases: list[TestCase],
     variants: list[PromptVariant] | None = None,
     system_type: str = "swarm",
-    agent_mode: str = "auto",
-    model: str = "gpt-4o-mini",
+    model: str = "meta-llama/Llama-3.1-8B-Instruct",
 ) -> dict[str, list[RunRecord]]:
     selected = variants or get_variants(include_baseline=True)
-    return {variant.name: run_suite(cases, variant, system_type=system_type, agent_mode=agent_mode, model=model) for variant in selected}
+    return {variant.name: run_suite(cases, variant, system_type=system_type, model=model) for variant in selected}
 
 
 def records_to_dataframe(records_by_variant: dict[str, list[RunRecord]]) -> pd.DataFrame:
@@ -135,11 +131,10 @@ def build_demo_run(
     case_count: int = 24,
     include_variants: bool = True,
     system_type: str = "swarm",
-    agent_mode: str = "auto",
-    model: str = "gpt-4o-mini",
+    model: str = "meta-llama/Llama-3.1-8B-Instruct",
 ) -> tuple[list[TestCase], dict[str, list[RunRecord]], list[VariantSummary]]:
     cases = generate_demo_suite(case_count)
     variants = get_variants(include_baseline=True) if include_variants else [BASELINE_VARIANT]
-    records = run_all_variants(cases, variants, system_type=system_type, agent_mode=agent_mode, model=model)
+    records = run_all_variants(cases, variants, system_type=system_type, model=model)
     summaries = summarize_variants(records)
     return cases, records, summaries

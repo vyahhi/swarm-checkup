@@ -11,7 +11,6 @@ def main() -> int:
     parser.add_argument("--cases", type=int, default=24)
     parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
     parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
-    parser.add_argument("--agent-mode", choices=["auto", "llm", "deterministic"], default="auto")
     args = parser.parse_args()
 
     command = [
@@ -24,8 +23,6 @@ def main() -> int:
         args.wandb_mode,
         "--system-type",
         args.system_type,
-        "--agent-mode",
-        args.agent_mode,
     ]
     return subprocess.call(command)
 

@@ -12,8 +12,7 @@ def draft_response(
     triage: dict[str, Any],
     decision: dict[str, Any],
     variant: dict[str, str],
-    agent_mode: str = "deterministic",
-    model: str = "gpt-4o-mini",
+    model: str,
 ) -> str:
     ticket_id = case["id"]
     final_decision = decision["decision"]
@@ -35,15 +34,12 @@ def draft_response(
         response += " I also followed the special instruction in your message."
     if ticket_id:
         response += f" Case reference: {ticket_id}."
-    if agent_mode != "llm":
-        return response
     llm_response = call_llm_text(
         "response_agent",
         "You are a customer support response agent. Write one concise customer-facing response. Start with Thanks. Include the case reference.",
-        {"case": case, "triage": triage, "decision": decision, "variant": variant, "fallback_response": response},
-        response,
+        {"case": case, "triage": triage, "decision": decision, "variant": variant, "response_requirements": response},
         model,
     )
     if not llm_response.lower().startswith("thanks") or str(ticket_id) not in llm_response:
-        return response
+        raise RuntimeError("response_agent returned a response that failed output requirements")
     return llm_response

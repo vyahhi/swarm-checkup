@@ -6,10 +6,10 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 
 ## What It Does
 
-- Loads a deterministic refund-support stress-test suite.
+- Loads a stable refund-support stress-test suite.
 - Runs the same cases through a flawed baseline support swarm and three improved prompt variants.
 - Records coordinator, triage, policy, risk, decision, response, and judge agents for each case.
-- Uses LLM-backed agents automatically when `OPENAI_API_KEY` is present; otherwise records deterministic fallback behavior.
+- Uses W&B Inference-backed LLM agents with `WANDB_API_KEY`.
 - Captures explicit inter-agent handoff messages with payload keys, reasons, shared-state reads, and shared-state writes.
 - Evaluates each response for policy correctness, decision correctness, completeness, tone, and injection resistance.
 - Scores coordination health so handoff failures are visible alongside answer quality.
@@ -31,7 +31,7 @@ Each ticket is run through a baseline support swarm and improved prompt variants
 - [Separate swarm agent modules](refund_support_swarm/swarm_agents/)
 - [Claude/Codex skill](skills/agent-checkup/SKILL.md)
 - [Refund policy fixture](data/refund_policy.md)
-- [Fallback demo test suite](data/fallback_tests.json)
+- [Demo test suite](data/fallback_tests.json)
 - [Generated skill report](docs/agent-checkup-report.md)
 - [Short summary](docs/agent-qa-lab-summary.md)
 - [How it works](docs/how-it-works.md)
@@ -46,7 +46,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/run_agent_qa.py --cases 24
 ```
 
-Swarm mode is the default. Agent mode is `auto` by default: it uses LLM-backed agents when `OPENAI_API_KEY` is present, otherwise deterministic fallback agents. W&B mode is also `auto`: it logs online when `WANDB_API_KEY` is present in `.env` or your shell, otherwise it runs local-only.
+Swarm mode is the default. Agents always run through W&B Inference, so `WANDB_API_KEY` must be present in `.env` or your shell. W&B run logging mode is `auto`: it logs online when `WANDB_API_KEY` is present, otherwise logging is disabled.
 
 ## Install and Run the Skill
 
@@ -65,15 +65,15 @@ codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm."
 ```
 
 This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
-It also uses agent auto mode: LLM-backed agents when `OPENAI_API_KEY` is present, deterministic fallback agents otherwise.
+Agents always use W&B Inference-backed LLM calls.
 
-Explicit local-only run:
+Run without W&B Tables/logging while still using W&B Inference:
 
 ```bash
 codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm. Run 24 cases. Run W&B disabled."
 ```
 
-Direct script fallback:
+Direct script run:
 
 ```bash
 python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_swarm --cases 24
@@ -95,12 +95,11 @@ For a real multi-agent repo, point the skill at the swarm package or eval runner
 The default project is `agent-qa-lab`. Set these environment variables in `.env` or your shell if needed:
 
 ```bash
-OPENAI_API_KEY=...
 WANDB_API_KEY=...
 WANDB_ENTITY=...
 AGENT_QA_WANDB_PROJECT=agent-qa-lab
-AGENT_QA_AGENT_MODE=auto
-AGENT_QA_DEMO_MODEL=gpt-4o-mini
+AGENT_QA_DEMO_MODEL=meta-llama/Llama-3.1-8B-Instruct
+WANDB_INFERENCE_BASE_URL=https://api.inference.wandb.ai/v1
 ```
 
-The CLI and skill also support offline and disabled W&B modes for local-only demos.
+The CLI and skill also support offline and disabled W&B run logging modes. Agent calls still require W&B Inference and `WANDB_API_KEY`.

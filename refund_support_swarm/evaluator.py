@@ -72,7 +72,7 @@ def evaluate_response(case: dict[str, Any], result: dict[str, Any]) -> dict[str,
         agent_trace=list(result.get("agent_trace", [])),
         handoff_count=int(result.get("handoff_count", 0)),
         participating_agents=list(result.get("participating_agents", [])),
-        model=result.get("model", "deterministic-demo-agent"),
+        model=result.get("model", "meta-llama/Llama-3.1-8B-Instruct"),
         trace_url=result.get("trace_url", ""),
     )
     decision_correct = agent_result.decision == test_case.expected_decision

@@ -7,68 +7,93 @@ from typing import Any
 import weave
 
 
-def resolve_agent_mode(requested_mode: str = "auto") -> str:
-    mode = os.getenv("AGENT_QA_AGENT_MODE", "auto") if requested_mode == "auto" else requested_mode
-    if mode == "auto":
-        return "llm" if os.getenv("OPENAI_API_KEY") else "deterministic"
-    return mode
+WANDB_INFERENCE_BASE_URL = "https://api.inference.wandb.ai/v1"
+DEFAULT_WANDB_INFERENCE_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 
 
 def llm_available() -> bool:
-    return bool(os.getenv("OPENAI_API_KEY"))
+    return bool(os.getenv("WANDB_API_KEY"))
 
 
 @weave.op
-def call_llm_json(agent_name: str, system_prompt: str, user_payload: dict[str, Any], fallback: dict[str, Any], model: str) -> dict[str, Any]:
+def call_llm_json(agent_name: str, system_prompt: str, user_payload: dict[str, Any], defaults: dict[str, Any], model: str) -> dict[str, Any]:
     if not llm_available():
-        return {**fallback, "llm_used": False, "llm_fallback_reason": "missing_openai_api_key"}
+        raise RuntimeError("WANDB_API_KEY is required for W&B Inference")
 
     try:
         from openai import OpenAI
     except ImportError:
-        return {**fallback, "llm_used": False, "llm_fallback_reason": "openai_package_not_installed"}
+        raise RuntimeError("The openai package is required for W&B Inference") from None
 
-    try:
-        client = OpenAI()
-        response = client.chat.completions.create(
-            model=model,
-            temperature=0,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
-            ],
-        )
-    except Exception as exc:
-        return {**fallback, "llm_used": False, "llm_fallback_reason": type(exc).__name__}
+    client = OpenAI(
+        base_url=os.getenv("WANDB_INFERENCE_BASE_URL", WANDB_INFERENCE_BASE_URL),
+        api_key=os.environ["WANDB_API_KEY"],
+        project=os.getenv("AGENT_QA_WANDB_INFERENCE_PROJECT"),
+        timeout=float(os.getenv("WANDB_INFERENCE_TIMEOUT_SECONDS", "60")),
+    )
+    response = client.chat.completions.create(
+        model=model,
+        temperature=0,
+        messages=[
+            {"role": "system", "content": f"{system_prompt}\nReturn only a valid JSON object."},
+            {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
+        ],
+    )
     content = response.choices[0].message.content or "{}"
     try:
-        data = json.loads(content)
-    except json.JSONDecodeError:
-        return {**fallback, "llm_used": False, "llm_fallback_reason": "invalid_json", "llm_raw_response": content}
-    return {**fallback, **data, "llm_used": True, "llm_agent": agent_name, "llm_model": model}
+        data = _json_object_from_text(content)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"{agent_name} returned invalid JSON") from exc
+    return {**defaults, **data, "llm_used": True, "llm_agent": agent_name, "llm_model": model}
 
 
 @weave.op
-def call_llm_text(agent_name: str, system_prompt: str, user_payload: dict[str, Any], fallback: str, model: str) -> str:
+def call_llm_text(agent_name: str, system_prompt: str, user_payload: dict[str, Any], model: str) -> str:
     if not llm_available():
-        return fallback
+        raise RuntimeError("WANDB_API_KEY is required for W&B Inference")
 
     try:
         from openai import OpenAI
     except ImportError:
-        return fallback
+        raise RuntimeError("The openai package is required for W&B Inference") from None
 
+    client = OpenAI(
+        base_url=os.getenv("WANDB_INFERENCE_BASE_URL", WANDB_INFERENCE_BASE_URL),
+        api_key=os.environ["WANDB_API_KEY"],
+        project=os.getenv("AGENT_QA_WANDB_INFERENCE_PROJECT"),
+        timeout=float(os.getenv("WANDB_INFERENCE_TIMEOUT_SECONDS", "60")),
+    )
+    response = client.chat.completions.create(
+        model=model,
+        temperature=0,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
+        ],
+    )
+    content = response.choices[0].message.content
+    if not content:
+        raise RuntimeError(f"{agent_name} returned an empty response")
+    return content
+
+
+def _json_object_from_text(content: str) -> dict[str, Any]:
+    text = content.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
     try:
-        client = OpenAI()
-        response = client.chat.completions.create(
-            model=model,
-            temperature=0,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
-            ],
-        )
-    except Exception:
-        return fallback
-    return response.choices[0].message.content or fallback
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start == -1 or end == -1 or end <= start:
+            raise
+        parsed = json.loads(text[start : end + 1])
+    if not isinstance(parsed, dict):
+        raise json.JSONDecodeError("expected a JSON object", text, 0)
+    return parsed

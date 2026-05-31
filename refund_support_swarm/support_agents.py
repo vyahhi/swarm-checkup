@@ -3,7 +3,6 @@ from __future__ import annotations
 import time
 
 from .models import AgentResult, PolicyClause, PromptVariant, TestCase
-from .llm_client import resolve_agent_mode
 from .swarm_agents.coordinator import coordinator_plan
 from .swarm_agents.decision_agent import make_refund_decision
 from .swarm_agents.policy_agent import lookup_policy
@@ -19,23 +18,21 @@ def run_agent(
     variant: PromptVariant,
     policy: dict[str, PolicyClause],
     system_type: str = "swarm",
-    agent_mode: str = "auto",
-    model: str = "gpt-4o-mini",
+    model: str = "meta-llama/Llama-3.1-8B-Instruct",
 ) -> AgentResult:
     started = time.perf_counter()
     case_dict = case.to_dict()
     variant_dict = variant.to_dict()
     agent_trace: list[dict] = []
-    resolved_agent_mode = resolve_agent_mode(agent_mode)
 
     if system_type == "swarm":
         blackboard: dict[str, object] = {"case": case_dict, "variant": variant_dict}
-        plan = coordinator_plan(case_dict, variant.name, resolved_agent_mode, model)
+        plan = coordinator_plan(case_dict, variant.name, model)
         blackboard["plan"] = plan
         agent_trace.append(agent_step("coordinator", "Create the execution plan and handoff contract.", plan, 4, reads=["case"], writes=["plan"]))
         agent_trace.append(handoff_event("coordinator", "triage_agent", ["case", "variant"], "Start by extracting structured facts and routing flags."))
 
-    triage = triage_ticket(case_dict, variant.name, resolved_agent_mode, model)
+    triage = triage_ticket(case_dict, variant.name, model)
     if system_type == "swarm":
         blackboard["triage"] = triage
         agent_trace.append(
@@ -43,21 +40,21 @@ def run_agent(
         )
         agent_trace.append(handoff_event("triage_agent", "policy_agent", ["case", "triage"], "Retrieve policy clauses for the extracted case facts."))
 
-    policy_context = lookup_policy(case_dict, triage, policy_to_dict(policy), resolved_agent_mode, model)
+    policy_context = lookup_policy(case_dict, triage, policy_to_dict(policy), model)
     if system_type == "swarm":
         blackboard["policy_context"] = policy_context
         agent_trace.append(
             agent_step("policy_agent", "Retrieve the policy clauses relevant to the case.", policy_context, 7, reads=["case", "triage"], writes=["policy_context"])
         )
         agent_trace.append(handoff_event("policy_agent", "risk_agent", ["triage", "policy_context"], "Check safety, escalation, and prompt-injection risks."))
-        risk_review = risk_agent_review(triage, policy_context, resolved_agent_mode, model)
+        risk_review = risk_agent_review(triage, policy_context, model)
         blackboard["risk_review"] = risk_review
         agent_trace.append(
             agent_step("risk_agent", "Check escalation, injection, and handoff risks.", risk_review, 6, reads=["triage", "policy_context"], writes=["risk_review"])
         )
         agent_trace.append(handoff_event("risk_agent", "decision_agent", ["triage", "policy_context", "risk_review"], "Make the policy decision from shared state."))
 
-    decision = make_refund_decision(triage, policy_context, variant_dict, resolved_agent_mode, model)
+    decision = make_refund_decision(triage, policy_context, variant_dict, model)
     if system_type == "swarm":
         blackboard["decision"] = decision
         agent_trace.append(
@@ -72,14 +69,14 @@ def run_agent(
         )
         agent_trace.append(handoff_event("decision_agent", "response_agent", ["case", "triage", "decision"], "Draft the customer-facing response."))
 
-    response = draft_response(case_dict, triage, decision, variant_dict, resolved_agent_mode, model)
+    response = draft_response(case_dict, triage, decision, variant_dict, model)
     if system_type == "swarm":
         blackboard["response"] = response
         agent_trace.append(
             agent_step("response_agent", "Draft a customer-safe final response.", response, 6, reads=["case", "triage", "decision"], writes=["response"])
         )
         agent_trace.append(handoff_event("response_agent", "qa_judge", ["case", "triage", "decision", "response"], "Review the final answer before release."))
-        qa_review = qa_judge_review(case_dict, triage, decision, response, resolved_agent_mode, model)
+        qa_review = qa_judge_review(case_dict, triage, decision, response, model)
         blackboard["qa_review"] = qa_review
         agent_trace.append(
             agent_step(
@@ -110,5 +107,5 @@ def run_agent(
         agent_trace=agent_trace,
         handoff_count=sum(1 for step in agent_trace if step.get("event_type") == "handoff"),
         participating_agents=participating_agents,
-        model=model if resolved_agent_mode == "llm" else "deterministic-demo-agent",
+        model=model,
     )

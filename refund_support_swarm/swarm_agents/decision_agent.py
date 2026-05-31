@@ -31,8 +31,7 @@ def make_refund_decision(
     triage: dict[str, Any],
     policy_context: dict[str, Any],
     variant: dict[str, str],
-    agent_mode: str = "deterministic",
-    model: str = "gpt-4o-mini",
+    model: str,
 ) -> dict[str, Any]:
     behavior = variant["behavior"]
     ideal = _ideal_decision(triage)
@@ -70,25 +69,27 @@ def make_refund_decision(
     elif behavior == "decision_rubric":
         reasons.append("Checked order ID, product type, time window, usage, escalation, and injection flags.")
 
-    fallback = {
+    defaults = {
         "decision": decision,
         "ideal_decision": ideal,
         "reasoning": reasons,
         "policy_clause_ids": policy_context["clause_ids"],
     }
-    if agent_mode != "llm":
-        return fallback
     llm_result = call_llm_json(
         "decision_agent",
         "You are a refund decision agent. Return JSON with decision, reasoning, and policy_clause_ids. Allowed decisions: refund, deny, request_info, escalate.",
-        {"triage": triage, "policy_context": policy_context, "variant": variant, "fallback_decision": fallback},
-        fallback,
+        {"triage": triage, "policy_context": policy_context, "variant": variant, "required_decision_fields": defaults},
+        defaults,
         model,
     )
     if llm_result.get("decision") not in {"refund", "deny", "request_info", "escalate"}:
-        llm_result["decision"] = fallback["decision"]
+        raise RuntimeError("decision_agent returned an invalid decision")
+    if isinstance(llm_result.get("reasoning"), str):
+        llm_result["reasoning"] = [llm_result["reasoning"]]
+    if isinstance(llm_result.get("policy_clause_ids"), str):
+        llm_result["policy_clause_ids"] = [item.strip() for item in llm_result["policy_clause_ids"].split(",") if item.strip()]
     if not isinstance(llm_result.get("reasoning"), list):
-        llm_result["reasoning"] = fallback["reasoning"]
+        raise RuntimeError("decision_agent returned invalid reasoning")
     if not isinstance(llm_result.get("policy_clause_ids"), list):
-        llm_result["policy_clause_ids"] = fallback["policy_clause_ids"]
+        raise RuntimeError("decision_agent returned invalid policy_clause_ids")
     return llm_result

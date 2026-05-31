@@ -50,7 +50,7 @@ This is not just logging.
 W&B powers the core workflow:
 
 - **Weave traces:** inspect each agent step, handoff, tool call, input, output, error, and latency
-- **Evaluations:** score every case with deterministic checks and LLM judges
+- **Evaluations:** score every case with rule-based checks and LLM judges
 - **Tables:** compare row-level outputs, failures, and fixes
 - **Artifacts/versioning:** track policy docs, prompts, test suites, and eval results
 - **Reports:** produce a shareable final reliability report

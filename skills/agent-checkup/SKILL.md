@@ -15,7 +15,7 @@ The skill is compatible with Claude and Codex because it uses a standard `SKILL.
 2. Prefer existing project commands over inventing new infrastructure.
 3. Run `scripts/run_agent_qa.py` from this skill to auto-detect and execute an existing QA/eval harness.
 4. If no harness exists, create a small eval harness close to the agent entrypoint.
-5. Use deterministic fallback cases for live demos; add LLM-generated cases only when the user asks.
+5. Use a stable seed test suite for live demos; add LLM-generated cases only when the user asks.
 6. Wrap meaningful agent and swarm steps with Weave tracing when editing code is in scope:
    - input/test generation
    - coordinator planning
@@ -49,22 +49,18 @@ For an explicit multi-agent checkup, keep the default swarm mode or pass it dire
 python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agents --cases 24 --system-type swarm
 ```
 
-W&B mode defaults to `auto`: use W&B online when `WANDB_API_KEY` is present in the environment or repo `.env`; otherwise run local-only. For explicit W&B logging:
+W&B mode defaults to `auto`: use W&B online when `WANDB_API_KEY` is present in the environment or repo `.env`; otherwise disable W&B run logging. W&B Inference-backed agents still require `WANDB_API_KEY`. For explicit W&B logging:
 
 ```bash
 python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode online
 ```
 
-Agent mode defaults to `auto`: use LLM-backed agents when `OPENAI_API_KEY` is present; otherwise use deterministic fallback agents. For explicit LLM agents:
-
-```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agents --cases 8 --agent-mode llm
-```
+Agent execution is LLM-only through W&B Inference.
 
 The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode} --system-type {system_type} --agent-mode {agent_mode}"
+python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode} --system-type {system_type}"
 ```
 
 It writes a report to `docs/agent-checkup-report.md` by default.
@@ -78,7 +74,7 @@ Every report should include:
 - best variant
 - improvement delta
 - system type: `swarm`, `multi_agent`, or `single_agent`
-- agent mode: `auto`, `llm`, or `deterministic`
+- agent mode: `llm`
 - coordination or handoff health when available
 - top failure category
 - fixed case count
@@ -110,7 +106,7 @@ Use a small fixed taxonomy unless the repo already defines one:
 Keep changes small and demo-oriented:
 
 - Add tracing at function boundaries, not around every line.
-- Keep tests deterministic for live demos.
+- Keep test suites stable for live demos.
 - Do not require a web UI to prove value.
 - Prefer one generated report and one W&B run over a broad refactor.
 - Keep `.env` and local W&B run directories out of git.

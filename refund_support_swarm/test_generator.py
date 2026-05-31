@@ -20,7 +20,7 @@ def load_fallback_tests(limit: int | None = None) -> list[TestCase]:
 
 @weave.op
 def generate_test_cases(seed_tickets: list[dict[str, str]], target_count: int = 24) -> list[dict]:
-    """Return a deterministic generated suite for reliable hackathon demos."""
+    """Return a stable generated suite for reliable hackathon demos."""
     cases = load_fallback_tests(limit=target_count)
     seed_categories = {ticket["category"] for ticket in seed_tickets}
     generated = []
@@ -33,4 +33,3 @@ def generate_test_cases(seed_tickets: list[dict[str, str]], target_count: int = 
 
 def generate_demo_suite(target_count: int = 24) -> list[TestCase]:
     return [TestCase.from_dict(item) for item in generate_test_cases(load_seed_tickets(), target_count)]
-

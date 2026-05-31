@@ -4,10 +4,26 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 from refund_support_swarm.config import load_settings
 from refund_support_swarm.prompts import get_variants
 from refund_support_swarm.runner import build_demo_run, records_to_dataframe, summarize_variants
 from refund_support_swarm.test_generator import generate_demo_suite
+from refund_support_swarm.swarm_agents import coordinator, decision_agent, policy_agent, qa_judge, response_agent, risk_agent, triage_agent
+
+
+@pytest.fixture(autouse=True)
+def fake_wandb_inference(monkeypatch) -> None:
+    def fake_call_llm_json(agent_name, system_prompt, user_payload, defaults, model):
+        return {**defaults, "llm_used": True, "llm_agent": agent_name, "llm_model": model}
+
+    def fake_call_llm_text(agent_name, system_prompt, user_payload, model):
+        return str(user_payload["response_requirements"])
+
+    for module in [coordinator, decision_agent, policy_agent, qa_judge, risk_agent, triage_agent]:
+        monkeypatch.setattr(module, "call_llm_json", fake_call_llm_json)
+    monkeypatch.setattr(response_agent, "call_llm_text", fake_call_llm_text)
 
 
 def test_demo_suite_has_expected_shape() -> None:
@@ -18,7 +34,7 @@ def test_demo_suite_has_expected_shape() -> None:
 
 
 def test_variants_improve_over_baseline() -> None:
-    cases, records, summaries = build_demo_run(case_count=24, include_variants=True, agent_mode="deterministic")
+    cases, records, summaries = build_demo_run(case_count=24, include_variants=True)
     by_variant = {summary.variant: summary for summary in summaries}
     assert len(cases) == 24
     assert by_variant["baseline"].pass_rate < by_variant["variant_c_decision_rubric"].pass_rate
@@ -27,14 +43,14 @@ def test_variants_improve_over_baseline() -> None:
 
 
 def test_summary_has_failure_taxonomy() -> None:
-    cases, records, _ = build_demo_run(case_count=16, include_variants=True, agent_mode="deterministic")
+    cases, records, _ = build_demo_run(case_count=16, include_variants=True)
     summaries = summarize_variants(records)
     baseline = next(summary for summary in summaries if summary.variant == "baseline")
     assert baseline.top_failure_category != "none"
 
 
 def test_swarm_records_include_handoffs() -> None:
-    _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm", agent_mode="deterministic")
+    _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm")
     first_record = records["baseline"][0]
     assert first_record.result.system_type == "swarm"
     assert first_record.result.handoff_count >= 6
@@ -47,13 +63,12 @@ def test_swarm_records_include_handoffs() -> None:
     assert all(summary.coordination_score >= 0.75 for summary in summaries)
 
 
-def test_llm_mode_marks_agent_results(monkeypatch) -> None:
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    _, records, _ = build_demo_run(case_count=1, include_variants=False, system_type="swarm", agent_mode="llm")
+def test_wandb_inference_marks_agent_results() -> None:
+    _, records, _ = build_demo_run(case_count=1, include_variants=False, system_type="swarm")
     result = records["baseline"][0].result
-    assert result.model == "gpt-4o-mini"
-    assert result.triage["llm_used"] is False
-    assert result.triage["llm_fallback_reason"] == "missing_openai_api_key"
+    assert result.model == "meta-llama/Llama-3.1-8B-Instruct"
+    assert result.triage["llm_used"] is True
+    assert result.triage["llm_agent"] == "triage_agent"
 
 
 def test_wandb_auto_mode_uses_api_key(monkeypatch) -> None:

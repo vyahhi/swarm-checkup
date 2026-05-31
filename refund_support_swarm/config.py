@@ -6,6 +6,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .llm_client import DEFAULT_WANDB_INFERENCE_MODEL
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT_DIR / "data"
@@ -17,7 +19,6 @@ class Settings:
     wandb_mode: str
     wandb_entity: str | None
     demo_model: str
-    agent_mode: str
 
     @property
     def wandb_enabled(self) -> bool:
@@ -35,6 +36,5 @@ def load_settings(wandb_mode: str | None = None) -> Settings:
         project_name=os.getenv("AGENT_QA_WANDB_PROJECT", "agent-qa-lab"),
         wandb_mode=mode,
         wandb_entity=os.getenv("WANDB_ENTITY") or None,
-        demo_model=os.getenv("AGENT_QA_DEMO_MODEL", "gpt-4o-mini"),
-        agent_mode=os.getenv("AGENT_QA_AGENT_MODE", "auto"),
+        demo_model=os.getenv("AGENT_QA_DEMO_MODEL", DEFAULT_WANDB_INFERENCE_MODEL),
     )

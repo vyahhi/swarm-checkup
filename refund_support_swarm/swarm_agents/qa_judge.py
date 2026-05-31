@@ -12,11 +12,10 @@ def qa_judge_review(
     triage: dict[str, Any],
     decision: dict[str, Any],
     response: str,
-    agent_mode: str = "deterministic",
-    model: str = "gpt-4o-mini",
+    model: str,
 ) -> dict[str, Any]:
     response_lower = response.lower()
-    fallback = {
+    defaults = {
         "case_id": case["id"],
         "decision": decision["decision"],
         "matches_expected_decision": decision["decision"] == case["expected_decision"],
@@ -25,12 +24,10 @@ def qa_judge_review(
         "ready_for_customer": response_lower.startswith("thanks"),
         "handoff_note": "QA judge reviewed the final response before release.",
     }
-    if agent_mode != "llm":
-        return fallback
     return call_llm_json(
         "qa_judge",
         "You are a QA judge for a support swarm. Return JSON. Preserve required fields and add concise llm_notes about answer quality.",
-        {"case": case, "triage": triage, "decision": decision, "response": response, "fallback_review": fallback},
-        fallback,
+        {"case": case, "triage": triage, "decision": decision, "response": response, "required_review_fields": defaults},
+        defaults,
         model,
     )

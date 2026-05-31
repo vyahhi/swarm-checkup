@@ -37,7 +37,7 @@ The agent answers refund requests using a fake company policy. The baseline inte
 - Generate useful stress tests from a few seed tasks.
 - Run a multi-step or multi-agent workflow against a stable test suite.
 - Trace every meaningful agent step and handoff in W&B Weave.
-- Score outputs using deterministic checks and LLM judging.
+- Score outputs using rule-based checks and LLM judging.
 - Score coordination quality so swarm failures are visible even when the final answer looks plausible.
 - Cluster failures into actionable categories.
 - Generate and compare improved prompt variants.
@@ -214,10 +214,10 @@ Required dimensions:
 
 Evaluation approach:
 
-- Use deterministic checks for expected decision and required policy clauses.
+- Use rule-based checks for expected decision and required policy clauses.
 - Use an LLM judge for tone, completeness, and explanation quality.
 - Use low temperature for stable judging.
-- Include fallback deterministic scoring if judge output is malformed.
+- Validate judge output strictly when malformed.
 
 ### 5.5 Prompt Improver
 
@@ -442,9 +442,9 @@ NFR-3: The harness must use fake data only.
 
 NFR-4: The harness must read W&B credentials from `.env` or environment variables.
 
-NFR-5: The workflow should tolerate one-off LLM failures with retries or fallbacks.
+NFR-5: The workflow should tolerate one-off LLM failures with retries.
 
-NFR-6: The harness should produce deterministic enough results for a live presentation.
+NFR-6: The harness should produce stable enough results for a live presentation.
 
 NFR-7: The UI should be understandable without training.
 
@@ -814,18 +814,18 @@ Exit criteria:
 
 Mitigations:
 
-- Use static fallback tests.
+- Use static seed tests.
 - Cache generated tests.
-- Default the demo to the deterministic fallback suite.
+- Default the demo to the stable seed suite.
 
 ### Evaluator Is Inconsistent
 
 Mitigations:
 
-- Combine deterministic expected-decision scoring with LLM judging.
+- Combine rule-based expected-decision scoring with LLM judging.
 - Keep rubric simple.
 - Use low temperature.
-- Validate judge JSON and fall back on deterministic scores.
+- Validate judge JSON and fail fast on malformed scores.
 
 ### W&B Setup Takes Too Long
 

@@ -53,11 +53,10 @@ def main() -> int:
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
     parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
-    parser.add_argument("--agent-mode", choices=["auto", "llm", "deterministic"], default="auto")
     parser.add_argument("--report", default="docs/agent-checkup-report.md", help="Report path relative to repo root.")
     parser.add_argument(
         "--command",
-        help="Optional eval command template. Supports {python}, {cases}, {wandb_mode}, {system_type}, and {agent_mode}.",
+        help="Optional eval command template. Supports {python}, {cases}, {wandb_mode}, and {system_type}.",
     )
     args = parser.parse_args()
 
@@ -67,7 +66,7 @@ def main() -> int:
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     wandb_mode = resolve_wandb_mode(repo, args.wandb_mode)
-    command = resolve_eval_command(repo, args.cases, wandb_mode, args.system_type, args.agent_mode, args.command)
+    command = resolve_eval_command(repo, args.cases, wandb_mode, args.system_type, args.command)
     if command:
         completed = run_command(command, repo)
         report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode, agent_path, repo)
@@ -94,19 +93,17 @@ def resolve_repo_root(repo: Path, agent_path: Path | None) -> Path:
     return repo
 
 
-def resolve_eval_command(
-    repo: Path, cases: int, wandb_mode: str, system_type: str, agent_mode: str, command_template: str | None
-) -> list[str] | None:
+def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, system_type: str, command_template: str | None) -> list[str] | None:
     python = select_python(repo)
     if command_template:
-        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode, system_type=system_type, agent_mode=agent_mode)
+        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode, system_type=system_type)
         return shlex.split(rendered)
 
-    candidates = candidate_eval_commands(repo, python, cases, wandb_mode, system_type, agent_mode)
+    candidates = candidate_eval_commands(repo, python, cases, wandb_mode, system_type)
     return candidates[0] if candidates else None
 
 
-def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str, system_type: str, agent_mode: str) -> list[list[str]]:
+def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str, system_type: str) -> list[list[str]]:
     candidates: list[list[str]] = []
 
     module_candidates = [
@@ -145,7 +142,6 @@ def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str
             command = [python, str(script.relative_to(repo)), "--cases", str(cases), "--wandb-mode", wandb_mode]
             if script.name in {"run_agent_qa.py", "run_swarm_qa.py"}:
                 command.extend(["--system-type", system_type])
-                command.extend(["--agent-mode", agent_mode])
             candidates.append(command)
 
     return candidates
@@ -254,7 +250,7 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
     best = max(variants or results, key=lambda item: (item.pass_rate, item.mean_score, item.fixed_cases), default=None)
     wandb_url = find_wandb_url(stdout + "\n" + stderr)
     system_type = find_key_value(stdout, "system_type") or "unknown"
-    agent_mode = find_key_value(stdout, "agent_mode") or "unknown"
+    agent_mode = find_key_value(stdout, "agent_mode") or "llm"
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines = [

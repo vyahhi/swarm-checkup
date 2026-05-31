@@ -1,6 +1,6 @@
 # How Agent QA Lab Works
 
-Agent QA Lab is a deterministic demo of an agent reliability workflow. It starts with a deliberately flawed refund-support swarm, runs it against a stable stress-test suite, traces each agent, shared-state update, and handoff message in W&B Weave, scores the output and coordination, and compares improved prompt variants.
+Agent QA Lab is a W&B Inference-backed demo of an agent reliability workflow. It starts with a deliberately flawed refund-support swarm, runs it against a stable stress-test suite, traces each agent, shared-state update, and handoff message in W&B Weave, scores the output and coordination, and compares improved prompt variants.
 
 ## End-to-End Flow
 
@@ -151,7 +151,7 @@ PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)
 
 ## What Happens During a Demo
 
-1. The demo harness loads deterministic refund-support stress tests from `data/fallback_tests.json`.
+1. The demo harness loads stable refund-support stress tests from `data/fallback_tests.json`.
 2. The same cases run against the flawed baseline swarm and three improved prompt variants.
 3. Each case moves through the support swarm: coordinator plan, triage, policy lookup, risk review, refund decision, response drafting, QA judge review, and evaluation.
 4. `@weave.op` wraps the major agent and evaluator steps, while the run record captures explicit handoff messages with payload keys and reasons.
