@@ -10,7 +10,7 @@ Generated: 2026-05-31 21:19:50 UTC
 
 ## Target
 
-- Repo: `/Users/vyahhi/Documents/Codex/2026-05-31-checkout-vyahhi-s-latest-repo-from/agent-qa-lab`
+- Repo: `.`
 - Swarm path: `refund_support_swarm`
 - System type: `swarm`
 - Agent mode: `llm`

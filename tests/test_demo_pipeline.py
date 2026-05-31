@@ -172,6 +172,7 @@ def test_skill_runner_report_keeps_llm_metadata() -> None:
         ]
     )
     report = runner.build_demo_report(["python3", "scripts/run_agent_qa.py"], stdout, "", 0, None, Path.cwd())
+    assert "- Repo: `.`" in report
     assert "- LLM provider: `wandb_inference`" in report
     assert "- Model: `test-model`" in report
 
