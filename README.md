@@ -23,7 +23,58 @@ The diagram below shows the demo workflow for a fake customer-support refund swa
 
 Each ticket is run through a baseline support swarm and improved prompt variants. The evaluator checks whether the system made the right refund decision, followed policy, handled missing information, resisted injection, coordinated handoffs, and used an acceptable tone. W&B Weave captures the coordinator, specialist agents, handoff messages, shared-state access, and judge as traces, while W&B Tables compare the baseline and variants case by case.
 
-![Swarm Checkup flow](docs/diagrams/swarm-checkup-flow.png)
+```mermaid
+flowchart TB
+    subgraph Inputs[Inputs]
+        A[Seed support tickets]
+        P[Refund policy fixture]
+    end
+
+    subgraph TestCreation[Test creation]
+        B[Test generator]
+        C[Stress-test suite]
+    end
+
+    subgraph Execution[Multi-agent execution]
+        D[Baseline refund swarm]
+        E[Prompt variants]
+        F[Agent run records]
+    end
+
+    subgraph Evaluation[Evaluation]
+        G[Evaluator]
+        H[Failure taxonomy]
+        I[Variant and handoff metrics]
+    end
+
+    subgraph Evidence[W&B evidence layer]
+        W[W&B Weave traces]
+        K[W&B Tables and run summary]
+    end
+
+    J[Markdown report and CLI summary]
+
+    A --> B
+    P --> B
+    B --> C
+    C --> D
+    C --> E
+    P --> D
+    P --> E
+    D --> F
+    E --> F
+    F --> G
+    G --> H
+    G --> I
+    D -. "agents and handoffs traced" .-> W
+    E -. "agents and handoffs traced" .-> W
+    G -. "scores logged" .-> W
+    H --> J
+    I --> J
+    W --> J
+    I --> K
+    H --> K
+```
 
 ## Repository Guide
 
