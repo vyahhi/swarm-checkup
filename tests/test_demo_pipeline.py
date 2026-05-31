@@ -156,6 +156,8 @@ def test_skill_runner_report_uses_portable_command_path() -> None:
     repo = Path(__file__).resolve().parents[1]
     command = [str(repo / ".venv" / "bin" / "python"), "scripts/run_agent_qa.py"]
     assert runner.display_command(command, repo) == ".venv/bin/python scripts/run_agent_qa.py"
+    spaced_command = [str(repo / ".venv" / "bin" / "python"), "--agent-path", "demo swarm"]
+    assert runner.display_command(spaced_command, repo) == ".venv/bin/python --agent-path 'demo swarm'"
 
 
 def test_skill_runner_report_keeps_llm_metadata() -> None:

@@ -356,7 +356,7 @@ def display_command(command: list[str], repo: Path) -> str:
             display_args.append(str(path.relative_to(repo)))
         except ValueError:
             display_args.append(arg)
-    return " ".join(display_args)
+    return " ".join(shlex.quote(arg) for arg in display_args)
 
 
 def find_wandb_url(text: str) -> str:
