@@ -13,8 +13,8 @@ The skill is compatible with Claude and Codex because it uses a standard `SKILL.
 
 1. Inspect the repo for an existing agent harness, tests, prompts, policies, or W&B/Weave setup.
 2. Prefer existing project commands over inventing new infrastructure.
-3. If the repo is this Agent QA Lab demo, run `scripts/run_agent_qa.py` from this skill.
-4. If the repo has no harness, create a small eval harness close to the agent entrypoint.
+3. Run `scripts/run_agent_qa.py` from this skill to auto-detect and execute an existing QA/eval harness.
+4. If no harness exists, create a small eval harness close to the agent entrypoint.
 5. Use deterministic fallback cases for live demos; add LLM-generated cases only when the user asks.
 6. Wrap meaningful agent steps with Weave tracing when editing code is in scope:
    - input/test generation
@@ -41,10 +41,10 @@ For W&B logging:
 python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode online
 ```
 
-The script detects this demo repo and runs:
+The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:
 
 ```bash
-python -m agent_qa_lab.demo_run --cases <N> --wandb-mode <mode>
+python skills/agent-qa-lab/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode}"
 ```
 
 It writes a report to `docs/agent-qa-skill-report.md` by default.
@@ -89,4 +89,3 @@ Keep changes small and demo-oriented:
 - Do not require a web UI to prove value.
 - Prefer one generated report and one W&B run over a broad refactor.
 - Keep `.env` and local W&B run directories out of git.
-

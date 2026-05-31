@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -37,14 +38,18 @@ def main() -> int:
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
     parser.add_argument("--report", default="docs/agent-qa-skill-report.md", help="Report path relative to repo root.")
+    parser.add_argument(
+        "--command",
+        help="Optional eval command template. Supports {python}, {cases}, and {wandb_mode}.",
+    )
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
     report_path = repo / args.report
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if is_agent_qa_lab_repo(repo):
-        command = [select_python(repo), "-m", "agent_qa_lab.demo_run", "--cases", str(args.cases), "--wandb-mode", args.wandb_mode]
+    command = resolve_eval_command(repo, args.cases, args.wandb_mode, args.command)
+    if command:
         completed = run_command(command, repo)
         report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode)
         report_path.write_text(report, encoding="utf-8")
@@ -56,12 +61,46 @@ def main() -> int:
 
     report_path.write_text(build_scaffold_report(repo), encoding="utf-8")
     print(f"report={report_path}")
-    print("No Agent QA Lab harness detected. Wrote scaffold report.")
+    print("No executable agent QA harness detected. Wrote scaffold report.")
     return 2
 
 
-def is_agent_qa_lab_repo(repo: Path) -> bool:
-    return (repo / "agent_qa_lab" / "demo_run.py").exists() and (repo / "data" / "fallback_tests.json").exists()
+def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, command_template: str | None) -> list[str] | None:
+    python = select_python(repo)
+    if command_template:
+        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode)
+        return shlex.split(rendered)
+
+    candidates = candidate_eval_commands(repo, python, cases, wandb_mode)
+    return candidates[0] if candidates else None
+
+
+def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str) -> list[list[str]]:
+    candidates: list[list[str]] = []
+
+    module_candidates = [
+        "agent_qa_lab.demo_run",
+        "agent_qa.demo_run",
+        "agent_eval.demo_run",
+        "evals.demo_run",
+        "evaluation.demo_run",
+    ]
+    for module in module_candidates:
+        module_path = repo / Path(module.replace(".", "/") + ".py")
+        if module_path.exists():
+            candidates.append([python, "-m", module, "--cases", str(cases), "--wandb-mode", wandb_mode])
+
+    script_candidates = [
+        repo / "scripts" / "run_agent_qa.py",
+        repo / "scripts" / "run_evals.py",
+        repo / "scripts" / "eval_agent.py",
+        repo / "eval_agent.py",
+    ]
+    for script in script_candidates:
+        if script.exists():
+            candidates.append([python, str(script.relative_to(repo)), "--cases", str(cases), "--wandb-mode", wandb_mode])
+
+    return candidates
 
 
 def select_python(repo: Path) -> str:
