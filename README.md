@@ -1,27 +1,40 @@
 # Swarm Checkup
 
-Agents are easy to demo and hard to trust. We built the W&B-powered lab that makes agents measurable, debuggable, and improvable.
+**A W&B-powered skill for testing, tracing, and improving multi-agent swarms.**
 
-Swarm Checkup is a W&B-native evaluation and debugging lab for multi-agent swarms. It turns a few example tasks into a stress-test suite, traces agent execution and inter-agent handoffs in W&B Weave, scores failures, and compares improved prompt variants.
+Agents are easy to demo and hard to trust. Swarm Checkup gives agent builders a repeatable QA loop: generate stress cases, run the same workload through a swarm, trace every handoff in W&B Weave, score the result, and compare prompt or model variants.
 
-## What It Does
+The repo includes both:
 
-- Loads a stable refund-support stress-test suite.
-- Runs the same cases through a flawed baseline support swarm and three improved prompt variants.
-- Records coordinator, triage, policy, risk, decision, response, and judge agents for each case.
-- Uses W&B Inference-backed LLM agents with `WANDB_API_KEY`.
-- Captures explicit inter-agent handoff messages with payload keys, reasons, shared-state reads, and shared-state writes.
-- Evaluates each response for policy correctness, decision correctness, completeness, tone, and injection resistance.
-- Scores coordination health so handoff failures are visible alongside answer quality.
-- Groups failures into categories such as missing required information, ignored policy constraints, and prompt-injection vulnerability.
-- Writes a Markdown reliability report and CLI summary.
-- Logs Weave traces and W&B Tables when W&B online mode is enabled.
+- a portable Claude/Codex skill at [`skills/swarm-checkup`](skills/swarm-checkup/)
+- a demo refund-support swarm in [`refund_support_swarm`](refund_support_swarm/)
 
-## Example Scenario
+## Why It Exists
 
-The diagram below shows the demo workflow for a fake customer-support refund swarm. The harness starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
+Most agent debugging is still too manual. When a swarm gives a bad answer, teams need to know whether the failure came from routing, retrieval, policy grounding, risk review, handoff state, the final response, or the judge.
 
-Each ticket is run through a baseline support swarm and improved prompt variants. The evaluator checks whether the system made the right refund decision, followed policy, handled missing information, resisted injection, coordinated handoffs, and used an acceptable tone. W&B Weave captures the coordinator, specialist agents, handoff messages, shared-state access, and judge as traces, while W&B Tables compare the baseline and variants case by case.
+Swarm Checkup makes those questions measurable:
+
+- Did the swarm make the right decision?
+- Did agents hand off the right state?
+- Did a prompt change fix failures or create regressions?
+- Can another teammate inspect the exact trace and result table?
+
+## What The Demo Does
+
+The bundled demo runs a deliberately flawed customer-support refund swarm against hard refund tickets, then compares it with improved prompt variants.
+
+It tracks:
+
+- coordinator, triage, policy, risk, decision, response, and judge agents
+- explicit inter-agent handoffs and shared-state access
+- policy correctness, decision correctness, completeness, tone, and injection resistance
+- coordination health, handoff count, latency, fixed cases, regressions, and top failure category
+- W&B Weave traces and W&B Tables when online logging is enabled
+
+The current default LLM is `Qwen/Qwen3.5-35B-A3B` through W&B Inference.
+
+## Demo Flow
 
 ```mermaid
 flowchart TB
@@ -90,86 +103,50 @@ flowchart TB
     class J dashboard
 ```
 
-## Repository Guide
-
-- [Demo swarm package](refund_support_swarm/)
-- [Separate swarm agent modules](refund_support_swarm/swarm_agents/)
-- [Claude/Codex skill](skills/swarm-checkup/SKILL.md)
-- [Refund policy fixture](data/refund_policy.md)
-- [Demo test suite](data/fallback_tests.json)
-- [Generated skill report](docs/swarm-checkup-report.md)
-- [Short summary](docs/swarm-checkup-summary.md)
-- [How it works](docs/how-it-works.md)
-- [Product requirements document](docs/swarm-checkup-prd.md)
-- [Five-slide hackathon deck](docs/swarm-checkup-slide-deck.md)
-
-## Run the Demo CLI
+## Quick Start
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
-.venv/bin/python scripts/run_agent_qa.py --cases 24
-```
-
-Swarm mode is the default. Agents always run through W&B Inference, so `WANDB_API_KEY` must be present in `.env` or your shell. W&B run logging mode is `auto`: it logs online when `WANDB_API_KEY` is present, otherwise logging is disabled.
-
-For a quick local smoke test with W&B run logging disabled but W&B Inference still enabled:
-
-```bash
+export WANDB_API_KEY=...
 .venv/bin/python scripts/run_agent_qa.py --cases 1 --wandb-mode disabled
 ```
 
-## Install and Run the Skill
+`--wandb-mode disabled` turns off W&B run logging, but agents still call W&B Inference. Keep `WANDB_API_KEY` set.
 
-The repo includes a portable Claude/Codex skill at `skills/swarm-checkup`.
+For a fuller run:
 
-1. Install the skill locally:
+```bash
+.venv/bin/python scripts/run_agent_qa.py --cases 24
+```
+
+The command writes [`docs/swarm-checkup-report.md`](docs/swarm-checkup-report.md).
+
+## Run The Skill
+
+Install the local skill:
 
 ```bash
 python3 scripts/install_skill.py
 ```
 
-2. Run it with Codex against the demo swarm:
-
-```bash
-codex exec -C . "Use swarm-checkup skill for swarm refund_support_swarm."
-```
-
-This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
-Agents always use W&B Inference-backed LLM calls.
-
-Run without W&B Tables/logging while still using W&B Inference. Keep `WANDB_API_KEY` set because the agents still call W&B Inference:
-
-```bash
-codex exec -C . "Use swarm-checkup skill for swarm refund_support_swarm. Run 24 cases. Run W&B disabled."
-```
-
-For a faster smoke run:
+Run it with Codex:
 
 ```bash
 codex exec -C . "Use swarm-checkup skill for swarm refund_support_swarm. Run 1 case. Run W&B disabled."
 ```
 
-Direct script run:
+Or call the skill script directly:
 
 ```bash
 python3 skills/swarm-checkup/scripts/run_agent_qa.py --agent-path refund_support_swarm --cases 24
 ```
 
-The skill writes `docs/swarm-checkup-report.md`.
+For another swarm repo, point `--agent-path` at the swarm package or provide an explicit eval command. The skill looks for common `run_agent_qa`, `run_swarm_qa`, and `eval_swarm` commands and includes handoff metrics when the harness emits them.
 
-For a real multi-agent repo, point the skill at the swarm package or eval runner. It will look for common `run_agent_qa`, `run_swarm_qa`, and `eval_swarm` commands, then include coordination and handoff metrics in the report when the harness emits them.
+## W&B Configuration
 
-## Demo Flow
-
-1. Run the CLI or skill command.
-2. Compare the baseline and variant pass rates in the terminal output.
-3. Open `docs/swarm-checkup-report.md` for the generated reliability report.
-4. If W&B mode is online, open the W&B run link to view traces and logged tables.
-
-## W&B Project
-
-The default project is `swarm-checkup`. Set these environment variables in `.env` or your shell if needed:
+The default project is `swarm-checkup`.
 
 ```bash
 WANDB_API_KEY=...
@@ -181,4 +158,31 @@ WANDB_INFERENCE_TIMEOUT_SECONDS=20
 WANDB_INFERENCE_MAX_RETRIES=0
 ```
 
-The CLI and skill also support offline and disabled W&B run logging modes. Agent calls still require W&B Inference and `WANDB_API_KEY`.
+W&B mode defaults to `auto`: online logging is used when `WANDB_API_KEY` is available, otherwise run logging is disabled. W&B Inference-backed agent calls always require `WANDB_API_KEY`.
+
+## Outputs
+
+- [`docs/swarm-checkup-report.md`](docs/swarm-checkup-report.md): generated reliability report
+- [`docs/swarm-checkup-summary.md`](docs/swarm-checkup-summary.md): short project summary
+- [`docs/how-it-works.md`](docs/how-it-works.md): implementation walkthrough
+- [`docs/swarm-checkup-prd.md`](docs/swarm-checkup-prd.md): product requirements
+- [`docs/swarm-checkup-presentation.html`](docs/swarm-checkup-presentation.html): five-slide presentation deck
+- [`docs/swarm-checkup-slide-deck.md`](docs/swarm-checkup-slide-deck.md): markdown deck outline
+
+## Repository Map
+
+- [`refund_support_swarm/`](refund_support_swarm/): demo swarm package
+- [`refund_support_swarm/swarm_agents/`](refund_support_swarm/swarm_agents/): separate swarm agent modules
+- [`skills/swarm-checkup/SKILL.md`](skills/swarm-checkup/SKILL.md): portable skill instructions
+- [`skills/swarm-checkup/scripts/run_agent_qa.py`](skills/swarm-checkup/scripts/run_agent_qa.py): skill runner
+- [`data/refund_policy.md`](data/refund_policy.md): refund policy fixture
+- [`data/fallback_tests.json`](data/fallback_tests.json): stable demo test suite
+- [`scripts/run_agent_qa.py`](scripts/run_agent_qa.py): repo CLI wrapper
+
+## Hackathon Pitch
+
+**Title:** Swarm Checkup
+
+**Tagline:** A W&B-powered skill that turns multi-agent swarms into tested, traced, improvable systems.
+
+**One-line pitch:** Most teams built agents. Swarm Checkup builds the lab that makes agents reliable.
