@@ -25,7 +25,8 @@ class Settings:
 
 def load_settings(wandb_mode: str | None = None) -> Settings:
     load_dotenv(ROOT_DIR / ".env")
-    mode = wandb_mode or os.getenv("AGENT_QA_WANDB_MODE")
+    mode = None if wandb_mode == "auto" else wandb_mode
+    mode = mode or os.getenv("AGENT_QA_WANDB_MODE")
     if not mode:
         mode = "online" if os.getenv("WANDB_API_KEY") else "disabled"
     return Settings(
@@ -34,4 +35,3 @@ def load_settings(wandb_mode: str | None = None) -> Settings:
         wandb_entity=os.getenv("WANDB_ENTITY") or None,
         demo_model=os.getenv("AGENT_QA_DEMO_MODEL", "deterministic-demo-agent"),
     )
-

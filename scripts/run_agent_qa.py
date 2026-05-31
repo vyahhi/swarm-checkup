@@ -9,7 +9,7 @@ import sys
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run this repo's demo agent QA harness.")
     parser.add_argument("--cases", type=int, default=24)
-    parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
+    parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
     parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
     args = parser.parse_args()
 

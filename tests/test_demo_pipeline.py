@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from refund_support_agent.config import load_settings
 from refund_support_agent.prompts import get_variants
 from refund_support_agent.runner import build_demo_run, records_to_dataframe, summarize_variants
 from refund_support_agent.test_generator import generate_demo_suite
@@ -38,3 +39,9 @@ def test_swarm_records_include_handoffs() -> None:
     )
     assert first_record.evaluation.coordination == 1.0
     assert all(summary.coordination_score >= 0.75 for summary in summaries)
+
+
+def test_wandb_auto_mode_uses_api_key(monkeypatch) -> None:
+    monkeypatch.delenv("AGENT_QA_WANDB_MODE", raising=False)
+    monkeypatch.setenv("WANDB_API_KEY", "test-key")
+    assert load_settings(wandb_mode="auto").wandb_mode == "online"

@@ -40,10 +40,10 @@ Each ticket is run through a baseline support swarm and improved prompt variants
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
-.venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled
+.venv/bin/python scripts/run_agent_qa.py --cases 24
 ```
 
-Swarm mode is the default. Use `--system-type single_agent` only when you want to compare against a non-swarm baseline. Use `--wandb-mode online` to log Weave traces and W&B Tables.
+Swarm mode is the default. W&B mode is `auto` by default: it logs online when `WANDB_API_KEY` is present in `.env` or your shell, otherwise it runs local-only. Use `--system-type single_agent` only when you want to compare against a non-swarm baseline.
 
 ## Install and Run the Skill
 
@@ -70,7 +70,7 @@ codex exec -C . "Use agent-checkup skill for agent refund_support_agent. Run 24 
 Direct script fallback:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_agent --cases 24 --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_agent --cases 24
 ```
 
 The skill writes `docs/agent-checkup-report.md`.

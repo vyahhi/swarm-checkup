@@ -34,22 +34,22 @@ The skill is compatible with Claude and Codex because it uses a standard `SKILL.
 Run the bundled script from any repo:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --repo . --cases 24 --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --repo . --cases 24
 ```
 
 When the user names a specific agent path, pass it through:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24
 ```
 
 For an explicit multi-agent checkup, keep the default swarm mode or pass it directly:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agents --cases 24 --system-type swarm --wandb-mode disabled
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agents --cases 24 --system-type swarm
 ```
 
-For W&B logging:
+W&B mode defaults to `auto`: use W&B online when `WANDB_API_KEY` is present in the environment or repo `.env`; otherwise run local-only. For explicit W&B logging:
 
 ```bash
 python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode online

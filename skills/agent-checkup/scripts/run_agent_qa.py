@@ -51,7 +51,7 @@ def main() -> int:
     parser.add_argument("--repo", default=".", help="Repository root to evaluate.")
     parser.add_argument("--agent-path", help="Path to the target agent file or directory.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
-    parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
+    parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
     parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
     parser.add_argument("--report", default="docs/agent-checkup-report.md", help="Report path relative to repo root.")
     parser.add_argument(
@@ -65,7 +65,8 @@ def main() -> int:
     report_path = repo / args.report
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    command = resolve_eval_command(repo, args.cases, args.wandb_mode, args.system_type, args.command)
+    wandb_mode = resolve_wandb_mode(repo, args.wandb_mode)
+    command = resolve_eval_command(repo, args.cases, wandb_mode, args.system_type, args.command)
     if command:
         completed = run_command(command, repo)
         report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode, agent_path, repo)
@@ -155,6 +156,26 @@ def select_python(repo: Path) -> str:
         if candidate.exists():
             return str(candidate)
     return sys.executable
+
+
+def resolve_wandb_mode(repo: Path, requested_mode: str) -> str:
+    if requested_mode != "auto":
+        return requested_mode
+    if os.environ.get("WANDB_API_KEY") or env_file_has_key(repo / ".env", "WANDB_API_KEY"):
+        return "online"
+    return "disabled"
+
+
+def env_file_has_key(path: Path, key: str) -> bool:
+    if not path.exists():
+        return False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.startswith(f"{key}=") and stripped.split("=", 1)[1].strip().strip("'\""):
+            return True
+    return False
 
 
 def run_command(command: list[str], repo: Path) -> subprocess.CompletedProcess[str]:

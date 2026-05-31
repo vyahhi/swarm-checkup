@@ -10,7 +10,7 @@ from .wandb_logging import log_demo_tables, run_url, wandb_session
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the Agent QA Lab demo pipeline.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
-    parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
+    parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
     parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
     args = parser.parse_args()
 
