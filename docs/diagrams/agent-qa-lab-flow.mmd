@@ -1,0 +1,50 @@
+flowchart TB
+    subgraph Inputs[Inputs]
+        A[Seed support tickets]
+        P[Refund policy fixture]
+    end
+
+    subgraph TestCreation[Test creation]
+        B[Test generator]
+        C[Stress-test suite]
+    end
+
+    subgraph Execution[Agent execution]
+        D[Baseline refund agent]
+        E[Prompt variants]
+        F[Agent run records]
+    end
+
+    subgraph Evaluation[Evaluation]
+        G[Evaluator]
+        H[Failure taxonomy]
+        I[Variant metrics]
+    end
+
+    subgraph Evidence[W&B evidence layer]
+        W[W&B Weave traces]
+        K[W&B Tables and run summary]
+    end
+
+    J[Streamlit dashboard]
+
+    A --> B
+    P --> B
+    B --> C
+    C --> D
+    C --> E
+    P --> D
+    P --> E
+    D --> F
+    E --> F
+    F --> G
+    G --> H
+    G --> I
+    D -. "weave traced" .-> W
+    E -. "weave traced" .-> W
+    G -. "scores logged" .-> W
+    H --> J
+    I --> J
+    W --> J
+    I --> K
+    H --> K

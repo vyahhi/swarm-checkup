@@ -7,6 +7,7 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 The current repository contains planning docs for a W&B hackathon build:
 
 - [Short summary](docs/agent-qa-lab-summary.md)
+- [How it works](docs/how-it-works.md)
 - [Product requirements document](docs/agent-qa-lab-prd.md)
 - [Five-slide hackathon deck](docs/agent-qa-lab-slide-deck.md)
 
