@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -69,6 +71,40 @@ def test_wandb_inference_marks_agent_results() -> None:
     assert result.model == "meta-llama/Llama-3.1-8B-Instruct"
     assert result.triage["llm_used"] is True
     assert result.triage["llm_agent"] == "triage_agent"
+
+
+def test_triage_coerces_nullable_numeric_llm_fields(monkeypatch) -> None:
+    def fake_call_llm_json(agent_name, system_prompt, user_payload, defaults, model):
+        return {**defaults, "purchase_age_days": "5", "usage_hours": "1.5"}
+
+    monkeypatch.setattr(triage_agent, "call_llm_json", fake_call_llm_json)
+    result = triage_agent.triage_ticket(
+        {
+            "id": "T-1",
+            "ticket": "Please refund my course. Order NS-1001.",
+            "category": "digital",
+            "risk_tags": [],
+        },
+        "baseline",
+        "test-model",
+    )
+    assert result["purchase_age_days"] == 5
+    assert result["usage_hours"] == 1.5
+
+
+def test_cli_requires_wandb_key() -> None:
+    env = os.environ.copy()
+    env.pop("WANDB_API_KEY", None)
+    completed = subprocess.run(
+        [sys.executable, "-m", "refund_support_swarm.demo_run", "--cases", "1", "--wandb-mode", "disabled"],
+        cwd=Path(__file__).resolve().parents[1],
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 2
+    assert "WANDB_API_KEY is required" in completed.stderr
 
 
 def test_wandb_auto_mode_uses_api_key(monkeypatch) -> None:

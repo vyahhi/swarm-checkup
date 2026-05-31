@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 
 from .config import load_settings
+from .llm_client import llm_available
 from .runner import build_demo_run, failure_counts, records_to_dataframe, summaries_to_dataframe
 from .wandb_logging import log_demo_tables, run_url, wandb_session
 
@@ -15,6 +16,9 @@ def main() -> int:
     args = parser.parse_args()
 
     settings = load_settings(wandb_mode=args.wandb_mode)
+    if not llm_available():
+        parser.error("WANDB_API_KEY is required because agents run through W&B Inference.")
+
     with wandb_session(settings, run_name=f"agent-qa-lab-{args.system_type}-demo") as run:
         cases, records, summaries = build_demo_run(
             case_count=args.cases,

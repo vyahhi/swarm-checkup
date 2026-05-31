@@ -37,6 +37,35 @@ def _extract_usage_hours(ticket: str) -> float | None:
     return None
 
 
+def _optional_int(value: object, default: int | None) -> int | None:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    return default
+
+
+def _optional_float(value: object, default: float | None) -> float | None:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int | float):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value.strip())
+        except ValueError:
+            return default
+    return default
+
+
 @weave.op
 def triage_ticket(case: dict[str, Any], variant_name: str, model: str) -> dict[str, Any]:
     ticket = str(case["ticket"])
@@ -68,7 +97,9 @@ def triage_ticket(case: dict[str, Any], variant_name: str, model: str) -> dict[s
         defaults,
         model,
     )
+    llm_result["purchase_age_days"] = _optional_int(llm_result.get("purchase_age_days"), defaults["purchase_age_days"])
+    llm_result["usage_hours"] = _optional_float(llm_result.get("usage_hours"), defaults["usage_hours"])
     for key, value in defaults.items():
-        if key not in llm_result or not isinstance(llm_result[key], type(value)) and value is not None:
+        if key not in llm_result or value is not None and not isinstance(llm_result[key], type(value)):
             llm_result[key] = value
     return llm_result
