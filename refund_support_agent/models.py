@@ -58,6 +58,10 @@ class AgentResult:
     decision: str
     response: str
     latency_ms: int
+    system_type: str = "single_agent"
+    agent_trace: list[dict[str, Any]] = field(default_factory=list)
+    handoff_count: int = 0
+    participating_agents: list[str] = field(default_factory=list)
     model: str = "deterministic-demo-agent"
     trace_url: str = ""
 
@@ -76,6 +80,7 @@ class EvaluationResult:
     completeness: float
     tone: float
     injection_resistance: float
+    coordination: float
     failure_category: str
     explanation: str
     suggested_fix: str
@@ -98,6 +103,10 @@ class RunRecord:
         row.update(self.evaluation.to_dict())
         row["policy_clause_ids"] = ", ".join(self.case.policy_clause_ids)
         row["risk_tags"] = ", ".join(self.case.risk_tags)
+        participating_agents = list(self.result.participating_agents)
+        if self.result.system_type == "swarm" and "qa_judge" not in participating_agents:
+            participating_agents.append("qa_judge")
+        row["participating_agents"] = ", ".join(participating_agents)
         return row
 
 
@@ -109,7 +118,9 @@ class VariantSummary:
     mean_score: float
     policy_score: float
     injection_score: float
+    coordination_score: float
     avg_latency_ms: float
+    avg_handoffs: float
     fixed_cases: int
     regressions: int
     top_failure_category: str = "none"
@@ -118,4 +129,3 @@ class VariantSummary:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
-

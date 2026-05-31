@@ -4,16 +4,16 @@
 
 ### 1.1 Product
 
-Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications. It takes a small number of seed examples, generates a focused stress-test suite, runs an agent workflow against those cases, traces execution in W&B Weave, evaluates results, groups failures, and compares improved variants.
+Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications and multi-agent swarms. It takes a small number of seed examples, generates a focused stress-test suite, runs an agent workflow against those cases, traces execution and handoffs in W&B Weave, evaluates results, groups failures, and compares improved variants.
 
 ### 1.2 Hackathon Positioning
 
 Most hackathon projects will demonstrate an agent completing tasks. Agent QA Lab demonstrates the reliability workflow needed after an agent demo works:
 
 1. Generate realistic tests.
-2. Run the agent.
-3. Inspect traces.
-4. Score failures.
+2. Run the agent or swarm.
+3. Inspect traces and handoffs.
+4. Score output and coordination failures.
 5. Improve prompts.
 6. Compare variants.
 7. Share a W&B-backed report.
@@ -22,7 +22,7 @@ The project should feel like "CI for agents" with W&B as the system of record.
 
 ### 1.3 One-Line Pitch
 
-Agent QA Lab turns a few example agent tasks into a W&B-powered test bench for making agents measurable, debuggable, and improvable.
+Agent QA Lab turns a few example agent or swarm tasks into a W&B-powered test bench for making agent systems measurable, debuggable, and improvable.
 
 ### 1.4 Primary Demo Domain
 
@@ -35,9 +35,10 @@ The agent answers refund requests using a fake company policy. The baseline inte
 ### 2.1 Product Objectives
 
 - Generate useful stress tests from a few seed tasks.
-- Run a multi-step agent workflow against a stable test suite.
-- Trace every meaningful agent step in W&B Weave.
+- Run a multi-step or multi-agent workflow against a stable test suite.
+- Trace every meaningful agent step and handoff in W&B Weave.
 - Score outputs using deterministic checks and LLM judging.
+- Score coordination quality so swarm failures are visible even when the final answer looks plausible.
 - Cluster failures into actionable categories.
 - Generate and compare improved prompt variants.
 - Produce a concise W&B-backed summary of before/after improvement.
@@ -204,6 +205,7 @@ Required dimensions:
 - `completeness`
 - `tone`
 - `injection_resistance`
+- `coordination`
 - `overall_score`
 - `pass`
 - `failure_category`

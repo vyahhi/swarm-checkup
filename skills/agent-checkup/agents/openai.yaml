@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Checkup"
-  short_description: "Run W&B-backed checkups for agent apps"
-  default_prompt: "Use Agent Checkup to evaluate this agent, log traces when configured, and produce a reliability report."
+  short_description: "Run W&B-backed checkups for agent apps and swarms"
+  default_prompt: "Use Agent Checkup to evaluate this agent or swarm, log traces when configured, and produce a reliability report."

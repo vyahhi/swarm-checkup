@@ -5,25 +5,27 @@ description: W&B-backed workflow for evaluating, red-teaming, debugging, and imp
 
 # Agent Checkup
 
-Use this skill to turn an agent prototype into a measurable reliability loop: generate or load tests, run the agent, trace execution, score results, compare variants, and write a report.
+Use this skill to turn an agent or multi-agent swarm prototype into a measurable reliability loop: generate or load tests, run the system, trace execution, score results, compare variants, and write a report.
 
 The skill is compatible with Claude and Codex because it uses a standard `SKILL.md` plus portable scripts. In Codex, prefer local shell tools and repo tests. In Claude, follow the same workflow and run the bundled scripts when tool access is available.
 
 ## Workflow
 
-1. Inspect the repo for an existing agent harness, tests, prompts, policies, or W&B/Weave setup.
+1. Inspect the repo for an existing agent or swarm harness, tests, prompts, policies, tools, handoffs, or W&B/Weave setup.
 2. Prefer existing project commands over inventing new infrastructure.
 3. Run `scripts/run_agent_qa.py` from this skill to auto-detect and execute an existing QA/eval harness.
 4. If no harness exists, create a small eval harness close to the agent entrypoint.
 5. Use deterministic fallback cases for live demos; add LLM-generated cases only when the user asks.
-6. Wrap meaningful agent steps with Weave tracing when editing code is in scope:
+6. Wrap meaningful agent and swarm steps with Weave tracing when editing code is in scope:
    - input/test generation
+   - coordinator planning
    - triage/routing
    - retrieval/tool calls
+   - inter-agent handoffs
    - decision step
    - final response
    - evaluator/scorer
-7. Score outputs with a fixed taxonomy before adding sophisticated LLM judges.
+7. Score outputs and coordination with a fixed taxonomy before adding sophisticated LLM judges.
 8. Compare baseline and variants on the same test suite.
 9. Produce a short Markdown report with metrics, top failures, fixed cases, and W&B links.
 
@@ -41,6 +43,12 @@ When the user names a specific agent path, pass it through:
 python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode disabled
 ```
 
+For an explicit multi-agent checkup, keep the default swarm mode or pass it directly:
+
+```bash
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agents --cases 24 --system-type swarm --wandb-mode disabled
+```
+
 For W&B logging:
 
 ```bash
@@ -50,7 +58,7 @@ python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent -
 The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode}"
+python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode} --system-type {system_type}"
 ```
 
 It writes a report to `docs/agent-checkup-report.md` by default.
@@ -63,6 +71,8 @@ Every report should include:
 - baseline pass rate
 - best variant
 - improvement delta
+- system type: `swarm`, `multi_agent`, or `single_agent`
+- coordination or handoff health when available
 - top failure category
 - fixed case count
 - W&B run link when available
@@ -84,6 +94,8 @@ Use a small fixed taxonomy unless the repo already defines one:
 - `wrong_decision`
 - `unsupported_claim`
 - `tool_or_retrieval_failure`
+- `handoff_contract_violation`
+- `agent_coordination_failure`
 - `runtime_error`
 
 ## Editing Guidance

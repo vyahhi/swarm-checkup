@@ -19,9 +19,11 @@ flowchart TB
         Log[wandb_logging.py]
     end
 
-    subgraph AgentWorkflow[Refund support workflow]
+    subgraph AgentWorkflow[Refund support swarm]
+        Coord[Coordinator]
         Triage[Triage Agent]
-        Lookup[Policy Lookup]
+        Lookup[Policy Agent]
+        Risk[Risk Agent]
         Decision[Decision Agent]
         Response[Response Agent]
         Judge[QA Judge]
@@ -41,7 +43,7 @@ flowchart TB
     TG --> Runner
     Prompts --> Runner
     Runner --> Agents
-    Agents --> Triage --> Lookup --> Decision --> Response
+    Agents --> Coord --> Triage --> Lookup --> Risk --> Decision --> Response
     Response --> Eval
     Eval --> Judge
     Eval --> Runner
@@ -60,6 +62,6 @@ flowchart TB
     class S,CLI ui
     class Policy,Seeds,Tests data
     class TG,Runner,Agents,Prompts,Log core
-    class Triage,Lookup,Decision,Response workflow
+    class Coord,Triage,Lookup,Risk,Decision,Response workflow
     class Eval,Judge eval
     class Weave,Tables,Run wandb

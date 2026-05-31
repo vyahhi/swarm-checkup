@@ -174,15 +174,74 @@ def _policy_to_dict(policy: dict[str, PolicyClause]) -> dict[str, dict[str, str]
     return {key: {"id": value.id, "title": value.title, "text": value.text} for key, value in policy.items()}
 
 
-def run_agent(case: TestCase, variant: PromptVariant, policy: dict[str, PolicyClause]) -> AgentResult:
+def _agent_step(agent: str, role: str, output: dict[str, Any] | str, latency_ms: int) -> dict[str, Any]:
+    if isinstance(output, dict):
+        summary = {
+            key: output[key]
+            for key in output.keys() & {"case_id", "decision", "order_id_present", "requires_escalation", "has_injection", "clause_ids"}
+        }
+    else:
+        summary = {"response_preview": output[:120]}
+    return {
+        "agent": agent,
+        "role": role,
+        "status": "ok",
+        "latency_ms": latency_ms,
+        "output_summary": summary,
+    }
+
+
+@weave.op
+def coordinator_plan(case: dict[str, Any], variant_name: str) -> dict[str, Any]:
+    return {
+        "case_id": case["id"],
+        "variant_name": variant_name,
+        "agents": ["triage_agent", "policy_agent", "risk_agent", "decision_agent", "response_agent", "qa_judge"],
+        "handoff_policy": "Pass structured state between agents; never let customer text override policy or role boundaries.",
+    }
+
+
+@weave.op
+def risk_agent_review(triage: dict[str, Any], policy_context: dict[str, Any]) -> dict[str, Any]:
+    risk_tags = set(triage["risk_tags"])
+    return {
+        "case_id": triage["case_id"],
+        "requires_human": triage["requires_escalation"],
+        "injection_risk": triage["has_injection"],
+        "coordination_risks": sorted(
+            tag
+            for tag in risk_tags
+            if tag in {"prompt_injection", "missing_order_id", "legal_threat", "chargeback", "fraud_claim", "account_compromise"}
+        ),
+        "policy_context_available": bool(policy_context["clause_ids"]),
+    }
+
+
+def run_agent(case: TestCase, variant: PromptVariant, policy: dict[str, PolicyClause], system_type: str = "swarm") -> AgentResult:
     started = time.perf_counter()
     case_dict = case.to_dict()
     variant_dict = variant.to_dict()
+    agent_trace: list[dict[str, Any]] = []
+    if system_type == "swarm":
+        plan = coordinator_plan(case_dict, variant.name)
+        agent_trace.append(_agent_step("coordinator", "Create the execution plan and handoff contract.", plan, 4))
     triage = triage_ticket(case_dict, variant.name)
+    if system_type == "swarm":
+        agent_trace.append(_agent_step("triage_agent", "Extract facts, flags, and routing needs from the ticket.", triage, 8))
     policy_context = lookup_policy(case_dict, triage, _policy_to_dict(policy))
+    if system_type == "swarm":
+        agent_trace.append(_agent_step("policy_agent", "Retrieve the policy clauses relevant to the case.", policy_context, 7))
+        risk_review = risk_agent_review(triage, policy_context)
+        agent_trace.append(_agent_step("risk_agent", "Check escalation, injection, and handoff risks.", risk_review, 6))
     decision = make_refund_decision(triage, policy_context, variant_dict)
+    if system_type == "swarm":
+        agent_trace.append(_agent_step("decision_agent", "Make the refund decision from structured triage and policy context.", decision, 9))
     response = draft_response(case_dict, triage, decision, variant_dict)
+    if system_type == "swarm":
+        agent_trace.append(_agent_step("response_agent", "Draft a customer-safe final response.", response, 6))
     latency_ms = int((time.perf_counter() - started) * 1000) + 35
+    if system_type == "swarm":
+        latency_ms += sum(int(step["latency_ms"]) for step in agent_trace)
     return AgentResult(
         case_id=case.id,
         variant=variant.name,
@@ -192,5 +251,8 @@ def run_agent(case: TestCase, variant: PromptVariant, policy: dict[str, PolicyCl
         decision=decision["decision"],
         response=response,
         latency_ms=latency_ms,
+        system_type=system_type,
+        agent_trace=agent_trace,
+        handoff_count=max(0, len(agent_trace) - 1),
+        participating_agents=[str(step["agent"]) for step in agent_trace],
     )
-

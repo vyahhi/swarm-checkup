@@ -9,8 +9,8 @@ flowchart TB
         C[Stress-test suite]
     end
 
-    subgraph Execution[Agent execution]
-        D[Baseline refund agent]
+    subgraph Execution[Multi-agent execution]
+        D[Baseline refund swarm]
         E[Prompt variants]
         F[Agent run records]
     end
@@ -18,7 +18,7 @@ flowchart TB
     subgraph Evaluation[Evaluation]
         G[Evaluator]
         H[Failure taxonomy]
-        I[Variant metrics]
+        I[Variant and handoff metrics]
     end
 
     subgraph Evidence[W&B evidence layer]
@@ -40,8 +40,8 @@ flowchart TB
     F --> G
     G --> H
     G --> I
-    D -. "weave traced" .-> W
-    E -. "weave traced" .-> W
+    D -. "agents and handoffs traced" .-> W
+    E -. "agents and handoffs traced" .-> W
     G -. "scores logged" .-> W
     H --> J
     I --> J

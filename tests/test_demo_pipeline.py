@@ -26,3 +26,15 @@ def test_summary_has_failure_taxonomy() -> None:
     summaries = summarize_variants(records)
     baseline = next(summary for summary in summaries if summary.variant == "baseline")
     assert baseline.top_failure_category != "none"
+
+
+def test_swarm_records_include_handoffs() -> None:
+    _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm")
+    first_record = records["baseline"][0]
+    assert first_record.result.system_type == "swarm"
+    assert first_record.result.handoff_count >= 4
+    assert {"coordinator", "triage_agent", "policy_agent", "decision_agent", "response_agent"}.issubset(
+        set(first_record.result.participating_agents)
+    )
+    assert first_record.evaluation.coordination == 1.0
+    assert all(summary.coordination_score >= 0.75 for summary in summaries)

@@ -1,6 +1,6 @@
 # How Agent QA Lab Works
 
-Agent QA Lab is a deterministic demo of an agent reliability workflow. It starts with a deliberately flawed refund-support agent, runs it against a stable stress-test suite, traces each agent step in W&B Weave, scores the output, and compares improved prompt variants.
+Agent QA Lab is a deterministic demo of an agent reliability workflow. It starts with a deliberately flawed refund-support swarm, runs it against a stable stress-test suite, traces each agent and handoff in W&B Weave, scores the output and coordination, and compares improved prompt variants.
 
 ## End-to-End Flow
 
@@ -17,7 +17,7 @@ flowchart TB
     end
 
     subgraph Execution[Agent execution]
-        D[Baseline refund agent]
+        D[Baseline refund swarm]
         E[Prompt variants]
         F[Agent run records]
     end
@@ -47,8 +47,8 @@ flowchart TB
     F --> G
     G --> H
     G --> I
-    D -. "weave traced" .-> W
-    E -. "weave traced" .-> W
+    D -. "agents and handoffs traced" .-> W
+    E -. "agents and handoffs traced" .-> W
     G -. "scores logged" .-> W
     H --> J
     I --> J
@@ -97,9 +97,11 @@ flowchart TB
         Log[wandb_logging.py]
     end
 
-    subgraph AgentWorkflow[Refund support workflow]
+    subgraph AgentWorkflow[Refund support swarm]
+        Coord[Coordinator]
         Triage[Triage Agent]
-        Lookup[Policy Lookup]
+        Lookup[Policy Agent]
+        Risk[Risk Agent]
         Decision[Decision Agent]
         Response[Response Agent]
         Judge[QA Judge]
@@ -119,7 +121,7 @@ flowchart TB
     TG --> Runner
     Prompts --> Runner
     Runner --> Agents
-    Agents --> Triage --> Lookup --> Decision --> Response
+    Agents --> Coord --> Triage --> Lookup --> Risk --> Decision --> Response
     Response --> Eval
     Eval --> Judge
     Eval --> Runner
@@ -138,7 +140,7 @@ flowchart TB
     class S,CLI ui
     class Policy,Seeds,Tests data
     class TG,Runner,Agents,Prompts,Log core
-    class Triage,Lookup,Decision,Response workflow
+    class Coord,Triage,Lookup,Risk,Decision,Response workflow
     class Eval,Judge eval
     class Weave,Tables,Run wandb
 ```
@@ -148,10 +150,10 @@ PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)
 ## What Happens During a Demo
 
 1. The demo harness loads deterministic refund-support stress tests from `data/fallback_tests.json`.
-2. The same cases run against the flawed baseline and three improved prompt variants.
-3. Each case moves through the support workflow: triage, policy lookup, refund decision, response drafting, and evaluation.
-4. `@weave.op` wraps the major steps so W&B Weave can show a trace tree for each run.
-5. The evaluator assigns pass/fail, numeric scores, and a failure category.
+2. The same cases run against the flawed baseline swarm and three improved prompt variants.
+3. Each case moves through the support swarm: coordinator plan, triage, policy lookup, risk review, refund decision, response drafting, and evaluation.
+4. `@weave.op` wraps the major agent and evaluator steps so W&B Weave can show a trace tree for each run.
+5. The evaluator assigns pass/fail, numeric scores, coordination score, and a failure category.
 6. The CLI and Markdown report show pass-rate improvement, fixed cases, remaining failures, and representative examples.
 7. In online W&B mode, the harness logs evaluation tables and summaries to the `agent-qa-lab` W&B project.
 
@@ -160,6 +162,6 @@ PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)
 W&B is not just a log sink in this demo. It is the evidence layer:
 
 - **Weave traces** show where a bad answer came from.
-- **Tables** compare baseline and variant outputs row by row.
+- **Tables** compare baseline and variant outputs row by row, including participating agents and handoff counts.
 - **Run summaries** show the best pass rate and variant-level metrics.
 - **Project history** makes the demo reproducible across runs.

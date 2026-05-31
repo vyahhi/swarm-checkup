@@ -2,13 +2,15 @@
 
 Agents are easy to demo and hard to trust. We built the W&B-powered lab that makes agents measurable, debuggable, and improvable.
 
-Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications. It turns a few example tasks into a stress-test suite, traces agent execution in W&B Weave, scores failures, and compares improved prompt variants.
+Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applications and multi-agent swarms. It turns a few example tasks into a stress-test suite, traces agent execution and inter-agent handoffs in W&B Weave, scores failures, and compares improved prompt variants.
 
 ## What It Does
 
 - Loads a deterministic refund-support stress-test suite.
-- Runs the same cases through a flawed baseline agent and three improved prompt variants.
+- Runs the same cases through a flawed baseline support swarm and three improved prompt variants.
+- Records coordinator, triage, policy, risk, decision, response, and judge handoffs for each case.
 - Evaluates each response for policy correctness, decision correctness, completeness, tone, and injection resistance.
+- Scores coordination health so handoff failures are visible alongside answer quality.
 - Groups failures into categories such as missing required information, ignored policy constraints, and prompt-injection vulnerability.
 - Writes a Markdown reliability report and CLI summary.
 - Logs Weave traces and W&B Tables when W&B online mode is enabled.
@@ -17,7 +19,7 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 
 The diagram below shows the demo workflow for a fake customer-support refund agent. The harness starts with a small refund policy and seed support tickets, then creates edge-case tickets such as expired refund windows, missing order IDs, angry customers, subscription refunds, digital-product limits, and prompt-injection attempts.
 
-Each ticket is run through a baseline agent and improved prompt variants. The evaluator checks whether the agent made the right refund decision, followed policy, handled missing information, resisted injection, and used an acceptable tone. W&B Weave captures the agent steps as traces, while W&B Tables compare the baseline and variants case by case.
+Each ticket is run through a baseline support swarm and improved prompt variants. The evaluator checks whether the system made the right refund decision, followed policy, handled missing information, resisted injection, coordinated handoffs, and used an acceptable tone. W&B Weave captures the coordinator, specialist agents, and judge as traces, while W&B Tables compare the baseline and variants case by case.
 
 ![Agent QA Lab flow](docs/diagrams/agent-qa-lab-flow.png)
 
@@ -41,7 +43,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled
 ```
 
-Use `--wandb-mode online` to log Weave traces and W&B Tables.
+Swarm mode is the default. Use `--system-type single_agent` only when you want to compare against a non-swarm baseline. Use `--wandb-mode online` to log Weave traces and W&B Tables.
 
 ## Install and Run the Skill
 
@@ -72,6 +74,8 @@ python skills/agent-checkup/scripts/run_agent_qa.py --agent-path refund_support_
 ```
 
 The skill writes `docs/agent-checkup-report.md`.
+
+For a real multi-agent repo, point the skill at the swarm package or eval runner. It will look for common `run_agent_qa`, `run_swarm_qa`, `eval_agent`, and `eval_swarm` commands, then include coordination and handoff metrics in the report when the harness emits them.
 
 ## Demo Flow
 

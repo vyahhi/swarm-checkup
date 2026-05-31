@@ -2,12 +2,12 @@
 
 ## Slide 1: Agents Are Easy to Demo, Hard to Trust
 
-**Agent QA Lab** is a W&B-powered QA lab for agentic apps.
+**Agent QA Lab** is a W&B-powered QA lab for agentic apps and multi-agent swarms.
 
 Most teams build an agent that works once. We built the loop that makes agents measurable, debuggable, and improvable.
 
 **One-line pitch:**  
-Agent QA Lab turns a few example tasks into a W&B-powered test bench for improving agent reliability.
+Agent QA Lab turns a few example tasks into a W&B-powered test bench for improving agent and swarm reliability.
 
 ---
 
@@ -26,20 +26,20 @@ Without traces, evals, and versioned comparisons, agent development becomes vibe
 
 ## Slide 3: What We Built
 
-We built a demo around a deliberately flawed customer-support refund agent.
+We built a demo around a deliberately flawed customer-support refund swarm.
 
 Agent QA Lab:
 
 - Generates edge-case and adversarial support tickets from a few seed examples
 - Runs a multi-agent refund workflow
-- Traces every step in W&B Weave
-- Scores responses for policy correctness, completeness, tone, escalation, and injection resistance
+- Traces every agent and handoff in W&B Weave
+- Scores responses for policy correctness, completeness, tone, escalation, injection resistance, and coordination
 - Clusters failures into root causes
 - Generates improved prompt variants
 - Compares baseline vs improved agents in W&B
 
 Demo outcome:  
-**Baseline agent fails on hard cases. Improved variant fixes measurable failures.**
+**Baseline swarm fails on hard cases. Improved variant fixes measurable failures.**
 
 ---
 
@@ -75,4 +75,3 @@ Most teams built agents. We built the lab that makes agents reliable.
 
 **Vision:**  
 Agent QA Lab becomes CI for agents: every prompt, model, or workflow change is tested, traced, compared, and shared through W&B.
-

@@ -20,6 +20,12 @@ SUMMARY_PATTERN = re.compile(
     r"(?P<regressions>\d+)\s+"
     r"(?P<top_failure_category>\S+)\s*$"
 )
+SWARM_PATTERN = re.compile(
+    r"^\s*(?P<variant>\S(?:.*?\S)?)\s+"
+    r"(?P<coordination_score>\d+(?:\.\d+)?)\s+"
+    r"(?P<avg_handoffs>\d+(?:\.\d+)?)\s+"
+    r"(?P<avg_latency_ms>\d+(?:\.\d+)?)\s*$"
+)
 
 
 @dataclass(frozen=True)
@@ -32,16 +38,25 @@ class VariantResult:
     top_failure_category: str
 
 
+@dataclass(frozen=True)
+class SwarmMetric:
+    variant: str
+    coordination_score: float
+    avg_handoffs: float
+    avg_latency_ms: float
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run Agent Checkup and write a reliability report.")
     parser.add_argument("--repo", default=".", help="Repository root to evaluate.")
     parser.add_argument("--agent-path", help="Path to the target agent file or directory.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="disabled")
+    parser.add_argument("--system-type", choices=["swarm", "single_agent"], default="swarm")
     parser.add_argument("--report", default="docs/agent-checkup-report.md", help="Report path relative to repo root.")
     parser.add_argument(
         "--command",
-        help="Optional eval command template. Supports {python}, {cases}, and {wandb_mode}.",
+        help="Optional eval command template. Supports {python}, {cases}, {wandb_mode}, and {system_type}.",
     )
     args = parser.parse_args()
 
@@ -50,7 +65,7 @@ def main() -> int:
     report_path = repo / args.report
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    command = resolve_eval_command(repo, args.cases, args.wandb_mode, args.command)
+    command = resolve_eval_command(repo, args.cases, args.wandb_mode, args.system_type, args.command)
     if command:
         completed = run_command(command, repo)
         report = build_demo_report(command, completed.stdout, completed.stderr, completed.returncode, agent_path, repo)
@@ -77,17 +92,17 @@ def resolve_repo_root(repo: Path, agent_path: Path | None) -> Path:
     return repo
 
 
-def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, command_template: str | None) -> list[str] | None:
+def resolve_eval_command(repo: Path, cases: int, wandb_mode: str, system_type: str, command_template: str | None) -> list[str] | None:
     python = select_python(repo)
     if command_template:
-        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode)
+        rendered = command_template.format(python=python, cases=cases, wandb_mode=wandb_mode, system_type=system_type)
         return shlex.split(rendered)
 
-    candidates = candidate_eval_commands(repo, python, cases, wandb_mode)
+    candidates = candidate_eval_commands(repo, python, cases, wandb_mode, system_type)
     return candidates[0] if candidates else None
 
 
-def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str) -> list[list[str]]:
+def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str, system_type: str) -> list[list[str]]:
     candidates: list[list[str]] = []
 
     module_candidates = [
@@ -95,10 +110,16 @@ def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str
         "agent_qa.eval",
         "agent_eval.run",
         "agent_eval.eval",
+        "swarm_eval.run",
+        "swarm_eval.eval",
         "evals.run_agent_qa",
+        "evals.run_swarm_qa",
         "evals.eval_agent",
+        "evals.eval_swarm",
         "evaluation.run_agent_qa",
+        "evaluation.run_swarm_qa",
         "evaluation.eval_agent",
+        "evaluation.eval_swarm",
     ]
     for module in module_candidates:
         module_path = repo / Path(module.replace(".", "/") + ".py")
@@ -107,13 +128,20 @@ def candidate_eval_commands(repo: Path, python: str, cases: int, wandb_mode: str
 
     script_candidates = [
         repo / "scripts" / "run_agent_qa.py",
+        repo / "scripts" / "run_swarm_qa.py",
         repo / "scripts" / "run_evals.py",
+        repo / "scripts" / "eval_swarm.py",
         repo / "scripts" / "eval_agent.py",
+        repo / "run_swarm_qa.py",
         repo / "eval_agent.py",
+        repo / "eval_swarm.py",
     ]
     for script in script_candidates:
         if script.exists():
-            candidates.append([python, str(script.relative_to(repo)), "--cases", str(cases), "--wandb-mode", wandb_mode])
+            command = [python, str(script.relative_to(repo)), "--cases", str(cases), "--wandb-mode", wandb_mode]
+            if script.name in {"run_agent_qa.py", "run_swarm_qa.py"}:
+                command.extend(["--system-type", system_type])
+            candidates.append(command)
 
     return candidates
 
@@ -157,12 +185,40 @@ def parse_variant_results(output: str) -> list[VariantResult]:
     return results
 
 
+def parse_swarm_metrics(output: str) -> list[SwarmMetric]:
+    metrics: list[SwarmMetric] = []
+    in_section = False
+    for line in output.splitlines():
+        if line.strip() == "swarm_metrics":
+            in_section = True
+            continue
+        if not in_section:
+            continue
+        match = SWARM_PATTERN.match(line)
+        if not match:
+            continue
+        variant = match.group("variant").strip()
+        if variant == "variant":
+            continue
+        metrics.append(
+            SwarmMetric(
+                variant=variant,
+                coordination_score=float(match.group("coordination_score")),
+                avg_handoffs=float(match.group("avg_handoffs")),
+                avg_latency_ms=float(match.group("avg_latency_ms")),
+            )
+        )
+    return metrics
+
+
 def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: int, agent_path: Path | None, repo: Path) -> str:
     results = parse_variant_results(stdout)
+    swarm_metrics = parse_swarm_metrics(stdout)
     baseline = next((item for item in results if item.variant == "baseline"), None)
     variants = [item for item in results if item.variant != "baseline"]
     best = max(variants or results, key=lambda item: (item.pass_rate, item.mean_score, item.fixed_cases), default=None)
     wandb_url = find_wandb_url(stdout + "\n" + stderr)
+    system_type = find_key_value(stdout, "system_type") or "unknown"
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines = [
@@ -180,6 +236,7 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
         "",
         f"- Repo: `{repo}`",
         f"- Agent path: `{relative_or_abs(agent_path, repo) if agent_path else 'not specified'}`",
+        f"- System type: `{system_type}`",
         "",
         "## Result",
         "",
@@ -197,6 +254,8 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
         lines.append(f"- Regressions: `{best.regressions}`")
     if wandb_url:
         lines.append(f"- W&B run: {wandb_url}")
+    if system_type == "swarm":
+        lines.append("- Swarm visibility: `agent_trace`, `participating_agents`, and `handoff_count` are logged per case.")
 
     lines.extend(
         [
@@ -212,6 +271,21 @@ def build_demo_report(command: list[str], stdout: str, stderr: str, returncode: 
             f"| `{item.variant}` | {item.pass_rate:.1%} | {item.mean_score:.3f} | "
             f"{item.fixed_cases} | {item.regressions} | `{item.top_failure_category}` |"
         )
+    if swarm_metrics:
+        lines.extend(
+            [
+                "",
+                "## Swarm Metrics",
+                "",
+                "| Variant | Coordination | Avg Handoffs | Avg Latency |",
+                "|---|---:|---:|---:|",
+            ]
+        )
+        for item in swarm_metrics:
+            lines.append(
+                f"| `{item.variant}` | {item.coordination_score:.1%} | "
+                f"{item.avg_handoffs:.1f} | {item.avg_latency_ms:.1f} ms |"
+            )
 
     lines.extend(
         [
@@ -247,6 +321,11 @@ def find_wandb_url(text: str) -> str:
     return match.group(0) if match else ""
 
 
+def find_key_value(text: str, key: str) -> str:
+    match = re.search(rf"^{re.escape(key)}=(.+)$", text, flags=re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
 def build_scaffold_report(repo: Path, agent_path: Path | None = None) -> str:
     candidates = find_agent_candidates(agent_path if agent_path else repo, repo)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -274,7 +353,7 @@ def build_scaffold_report(repo: Path, agent_path: Path | None = None) -> str:
             "",
             "## Smallest Next Step",
             "",
-            "Create a tiny eval harness that accepts a list of test cases, runs the agent entrypoint, returns structured outputs, and writes a Markdown report. Add W&B Weave tracing around the agent entrypoint, retrieval/tool calls, decision step, and evaluator.",
+            "Create a tiny eval harness that accepts a list of test cases, runs the agent or swarm entrypoint, returns structured outputs, and writes a Markdown report. Add W&B Weave tracing around the coordinator, handoffs, retrieval/tool calls, decision step, final response, and evaluator.",
             "",
             "## Suggested Test Categories",
             "",
@@ -300,7 +379,7 @@ def find_agent_candidates(search_root: Path, repo: Path) -> list[str]:
         if path.suffix not in {".py", ".ts", ".tsx", ".js", ".jsx", ".md"}:
             continue
         lower = path.name.lower()
-        if any(token in lower for token in ["agent", "prompt", "tool", "eval", "weave", "support"]):
+        if any(token in lower for token in ["agent", "swarm", "coordinator", "handoff", "prompt", "tool", "eval", "weave", "support"]):
             names.append(relative_or_abs(path, repo))
         if len(names) >= 20:
             break

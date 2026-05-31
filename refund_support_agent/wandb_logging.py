@@ -52,6 +52,8 @@ def log_demo_tables(run: object | None, eval_df: pd.DataFrame, summary_df: pd.Da
             "variant_summary": wandb.Table(dataframe=summary_table_df),
             "failure_counts": wandb.Table(dataframe=failure_table_df) if not failure_df.empty else wandb.Table(columns=["variant", "failure_category", "count"]),
             "best_pass_rate": float(summary_table_df["pass_rate"].max()) if not summary_table_df.empty else 0.0,
+            "best_coordination_score": float(summary_table_df["coordination_score"].max()) if "coordination_score" in summary_table_df else 0.0,
+            "avg_handoffs": float(summary_table_df["avg_handoffs"].mean()) if "avg_handoffs" in summary_table_df else 0.0,
         }
     )
 

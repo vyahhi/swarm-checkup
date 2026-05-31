@@ -2,17 +2,17 @@
 
 ## One-Line Pitch
 
-Agent QA Lab turns a few example agent tasks into a W&B-powered test bench for making agents measurable, debuggable, and improvable.
+Agent QA Lab turns a few example agent or swarm tasks into a W&B-powered test bench for making agent systems measurable, debuggable, and improvable.
 
 ## Executive Summary
 
 Most hackathon teams will build a multi-agent app. Agent QA Lab builds the system those teams need next: a QA lab that tests, debugs, and improves multi-agent apps.
 
-The product is a W&B-native agent evaluation lab. A user gives it a target agent and a few example tasks. Agent QA Lab automatically creates stress tests, runs the agent, traces every step in W&B Weave, scores failures, clusters root causes, and compares improved agent variants.
+The product is a W&B-native agent evaluation lab. A user gives it a target agent or multi-agent swarm and a few example tasks. Agent QA Lab automatically creates stress tests, runs the system, traces every agent and handoff in W&B Weave, scores answer and coordination failures, clusters root causes, and compares improved variants.
 
 ## Core Demo
 
-The demo uses a deliberately flawed customer-support refund agent. The agent handles refund requests using a small fake company policy and fails on realistic edge cases:
+The demo uses a deliberately flawed customer-support refund swarm. The system handles refund requests using a small fake company policy and fails on realistic edge cases:
 
 - Partial refunds
 - Expired refund windows
@@ -24,8 +24,9 @@ The demo uses a deliberately flawed customer-support refund agent. The agent han
 
 Agent QA Lab runs the flawed agent through generated test cases and produces:
 
-- Weave traces for every agent run
+- Weave traces for every agent run and handoff
 - A W&B Table of inputs, outputs, scores, and failure reasons
+- Swarm metrics such as participating agents, handoff count, coordination score, latency, and failures by root cause
 - A dashboard comparing baseline vs improved prompts
 - A failure taxonomy such as hallucinated policy, ignored constraint, bad escalation, and prompt-injection vulnerability
 - A generated final report such as "Agent v2 improved from 52% to 84% success"
@@ -53,7 +54,7 @@ This is not just logging. W&B is the product layer.
    - Generates 20-30 adversarial and edge-case tickets
 
 3. Evaluator
-   - Scores each answer for policy correctness, completeness, escalation behavior, tone, and injection resistance
+   - Scores each answer for policy correctness, completeness, escalation behavior, tone, injection resistance, and coordination quality
 
 4. Weave Instrumentation
    - Wraps all agent steps with `@weave.op`
@@ -72,4 +73,3 @@ This is not just logging. W&B is the product layer.
 > Agents are easy to demo and hard to trust. We built the W&B-powered lab that makes agents measurable, debuggable, and improvable.
 
 This is a better W&B hackathon project than another autonomous assistant because it highlights W&B's competitive strengths: observability, evals, comparison, reproducibility, and collaboration.
-
