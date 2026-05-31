@@ -1,0 +1,29 @@
+[project]
+name = "agent-qa-lab"
+version = "0.1.0"
+description = "W&B-powered QA lab for agentic applications."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=3.0.0",
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.40.0",
+    "wandb>=0.20.0",
+    "weave>=0.50.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["agent_qa_lab*"]
