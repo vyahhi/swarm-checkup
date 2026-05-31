@@ -55,10 +55,10 @@ The repo includes a portable Claude/Codex skill at `skills/agent-checkup`.
 python3 scripts/install_skill.py
 ```
 
-2. Run it with Codex against the demo agent:
+2. Run it with Codex against the demo swarm:
 
 ```bash
-codex exec -C . "Use agent-checkup skill for agent refund_support_agent."
+codex exec -C . "Use agent-checkup skill for swarm refund_support_agent."
 ```
 
 This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
@@ -66,7 +66,7 @@ This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is 
 Explicit local-only run:
 
 ```bash
-codex exec -C . "Use agent-checkup skill for agent refund_support_agent. Run 24 cases. Run W&B disabled."
+codex exec -C . "Use agent-checkup skill for swarm refund_support_agent. Run 24 cases. Run W&B disabled."
 ```
 
 Direct script fallback:
