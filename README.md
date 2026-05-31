@@ -48,6 +48,12 @@ python3 -m venv .venv
 
 Swarm mode is the default. Agents always run through W&B Inference, so `WANDB_API_KEY` must be present in `.env` or your shell. W&B run logging mode is `auto`: it logs online when `WANDB_API_KEY` is present, otherwise logging is disabled.
 
+For a quick local smoke test with W&B run logging disabled but W&B Inference still enabled:
+
+```bash
+.venv/bin/python scripts/run_agent_qa.py --cases 1 --wandb-mode disabled
+```
+
 ## Install and Run the Skill
 
 The repo includes a portable Claude/Codex skill at `skills/agent-checkup`.
@@ -67,10 +73,16 @@ codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm."
 This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
 Agents always use W&B Inference-backed LLM calls.
 
-Run without W&B Tables/logging while still using W&B Inference:
+Run without W&B Tables/logging while still using W&B Inference. Keep `WANDB_API_KEY` set because the agents still call W&B Inference:
 
 ```bash
 codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm. Run 24 cases. Run W&B disabled."
+```
+
+For a faster smoke run:
+
+```bash
+codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm. Run 1 case. Run W&B disabled."
 ```
 
 Direct script run:
