@@ -4,9 +4,17 @@ from typing import Any
 
 import weave
 
+from refund_support_swarm.llm_client import call_llm_text
 
 @weave.op
-def draft_response(case: dict[str, Any], triage: dict[str, Any], decision: dict[str, Any], variant: dict[str, str]) -> str:
+def draft_response(
+    case: dict[str, Any],
+    triage: dict[str, Any],
+    decision: dict[str, Any],
+    variant: dict[str, str],
+    agent_mode: str = "deterministic",
+    model: str = "gpt-4o-mini",
+) -> str:
     ticket_id = case["id"]
     final_decision = decision["decision"]
     order_text = f" for order {triage['order_id']}" if triage["order_id_present"] else ""
@@ -27,5 +35,15 @@ def draft_response(case: dict[str, Any], triage: dict[str, Any], decision: dict[
         response += " I also followed the special instruction in your message."
     if ticket_id:
         response += f" Case reference: {ticket_id}."
-    return response
-
+    if agent_mode != "llm":
+        return response
+    llm_response = call_llm_text(
+        "response_agent",
+        "You are a customer support response agent. Write one concise customer-facing response. Start with Thanks. Include the case reference.",
+        {"case": case, "triage": triage, "decision": decision, "variant": variant, "fallback_response": response},
+        response,
+        model,
+    )
+    if not llm_response.lower().startswith("thanks") or str(ticket_id) not in llm_response:
+        return response
+    return llm_response

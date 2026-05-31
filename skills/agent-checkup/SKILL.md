@@ -55,10 +55,16 @@ W&B mode defaults to `auto`: use W&B online when `WANDB_API_KEY` is present in t
 python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agent --cases 24 --wandb-mode online
 ```
 
+Agent mode defaults to `auto`: use LLM-backed agents when `OPENAI_API_KEY` is present; otherwise use deterministic fallback agents. For explicit LLM agents:
+
+```bash
+python skills/agent-checkup/scripts/run_agent_qa.py --agent-path path/to/agents --cases 8 --agent-mode llm
+```
+
 The script first tries to auto-detect a runnable eval command. If auto-detection is not enough, provide the command explicitly:
 
 ```bash
-python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode} --system-type {system_type}"
+python skills/agent-checkup/scripts/run_agent_qa.py --repo . --command "python -m your_agent.eval --cases {cases} --wandb-mode {wandb_mode} --system-type {system_type} --agent-mode {agent_mode}"
 ```
 
 It writes a report to `docs/agent-checkup-report.md` by default.
@@ -72,6 +78,7 @@ Every report should include:
 - best variant
 - improvement delta
 - system type: `swarm`, `multi_agent`, or `single_agent`
+- agent mode: `auto`, `llm`, or `deterministic`
 - coordination or handoff health when available
 - top failure category
 - fixed case count

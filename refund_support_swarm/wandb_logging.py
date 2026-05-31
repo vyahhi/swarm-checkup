@@ -13,7 +13,7 @@ from .config import Settings
 
 
 @contextmanager
-def wandb_session(settings: Settings, run_name: str | None = None) -> Iterator[object | None]:
+def wandb_session(settings: Settings, run_name: str | None = None, agent_mode: str | None = None) -> Iterator[object | None]:
     if not settings.wandb_enabled:
         yield None
         return
@@ -29,7 +29,11 @@ def wandb_session(settings: Settings, run_name: str | None = None) -> Iterator[o
         project=settings.project_name,
         entity=settings.wandb_entity,
         name=run_name or f"agent-qa-lab-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        config={"demo_model": settings.demo_model, "wandb_mode": settings.wandb_mode},
+        config={
+            "demo_model": settings.demo_model,
+            "wandb_mode": settings.wandb_mode,
+            "agent_mode": agent_mode or settings.agent_mode,
+        },
         reinit=True,
     )
     try:

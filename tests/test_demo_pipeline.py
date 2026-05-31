@@ -18,7 +18,7 @@ def test_demo_suite_has_expected_shape() -> None:
 
 
 def test_variants_improve_over_baseline() -> None:
-    cases, records, summaries = build_demo_run(case_count=24, include_variants=True)
+    cases, records, summaries = build_demo_run(case_count=24, include_variants=True, agent_mode="deterministic")
     by_variant = {summary.variant: summary for summary in summaries}
     assert len(cases) == 24
     assert by_variant["baseline"].pass_rate < by_variant["variant_c_decision_rubric"].pass_rate
@@ -27,14 +27,14 @@ def test_variants_improve_over_baseline() -> None:
 
 
 def test_summary_has_failure_taxonomy() -> None:
-    cases, records, _ = build_demo_run(case_count=16, include_variants=True)
+    cases, records, _ = build_demo_run(case_count=16, include_variants=True, agent_mode="deterministic")
     summaries = summarize_variants(records)
     baseline = next(summary for summary in summaries if summary.variant == "baseline")
     assert baseline.top_failure_category != "none"
 
 
 def test_swarm_records_include_handoffs() -> None:
-    _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm")
+    _, records, summaries = build_demo_run(case_count=8, include_variants=True, system_type="swarm", agent_mode="deterministic")
     first_record = records["baseline"][0]
     assert first_record.result.system_type == "swarm"
     assert first_record.result.handoff_count >= 6
@@ -45,6 +45,15 @@ def test_swarm_records_include_handoffs() -> None:
     assert any(step.get("to_agent") == "qa_judge" for step in first_record.result.agent_trace)
     assert first_record.evaluation.coordination == 1.0
     assert all(summary.coordination_score >= 0.75 for summary in summaries)
+
+
+def test_llm_mode_marks_agent_results(monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    _, records, _ = build_demo_run(case_count=1, include_variants=False, system_type="swarm", agent_mode="llm")
+    result = records["baseline"][0].result
+    assert result.model == "gpt-4o-mini"
+    assert result.triage["llm_used"] is False
+    assert result.triage["llm_fallback_reason"] == "missing_openai_api_key"
 
 
 def test_wandb_auto_mode_uses_api_key(monkeypatch) -> None:

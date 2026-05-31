@@ -9,6 +9,7 @@ Agent QA Lab is a W&B-native evaluation and debugging lab for agentic applicatio
 - Loads a deterministic refund-support stress-test suite.
 - Runs the same cases through a flawed baseline support swarm and three improved prompt variants.
 - Records coordinator, triage, policy, risk, decision, response, and judge agents for each case.
+- Uses LLM-backed agents automatically when `OPENAI_API_KEY` is present; otherwise records deterministic fallback behavior.
 - Captures explicit inter-agent handoff messages with payload keys, reasons, shared-state reads, and shared-state writes.
 - Evaluates each response for policy correctness, decision correctness, completeness, tone, and injection resistance.
 - Scores coordination health so handoff failures are visible alongside answer quality.
@@ -45,7 +46,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/run_agent_qa.py --cases 24
 ```
 
-Swarm mode is the default. W&B mode is `auto` by default: it logs online when `WANDB_API_KEY` is present in `.env` or your shell, otherwise it runs local-only. Use `--system-type single_agent` only when you want to compare against a non-swarm baseline.
+Swarm mode is the default. Agent mode is `auto` by default: it uses LLM-backed agents when `OPENAI_API_KEY` is present, otherwise deterministic fallback agents. W&B mode is also `auto`: it logs online when `WANDB_API_KEY` is present in `.env` or your shell, otherwise it runs local-only.
 
 ## Install and Run the Skill
 
@@ -64,6 +65,7 @@ codex exec -C . "Use agent-checkup skill for swarm refund_support_swarm."
 ```
 
 This default command uses W&B auto mode: it logs online when `WANDB_API_KEY` is present in `.env` or your shell.
+It also uses agent auto mode: LLM-backed agents when `OPENAI_API_KEY` is present, deterministic fallback agents otherwise.
 
 Explicit local-only run:
 
@@ -93,9 +95,12 @@ For a real multi-agent repo, point the skill at the swarm package or eval runner
 The default project is `agent-qa-lab`. Set these environment variables in `.env` or your shell if needed:
 
 ```bash
+OPENAI_API_KEY=...
 WANDB_API_KEY=...
 WANDB_ENTITY=...
 AGENT_QA_WANDB_PROJECT=agent-qa-lab
+AGENT_QA_AGENT_MODE=auto
+AGENT_QA_DEMO_MODEL=gpt-4o-mini
 ```
 
 The CLI and skill also support offline and disabled W&B modes for local-only demos.

@@ -1,11 +1,11 @@
 # Agent Checkup Report
 
-Generated: 2026-05-31 17:45:36 UTC
+Generated: 2026-05-31 17:54:45 UTC
 
 ## Command
 
 ```bash
-/Users/vyahhi/projects/sundai/20260531/.venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled --system-type swarm
+/Users/vyahhi/projects/sundai/20260531/.venv/bin/python scripts/run_agent_qa.py --cases 24 --wandb-mode disabled --system-type swarm --agent-mode deterministic
 ```
 
 ## Target
@@ -13,6 +13,7 @@ Generated: 2026-05-31 17:45:36 UTC
 - Repo: `/Users/vyahhi/projects/sundai/20260531`
 - Agent path: `refund_support_swarm`
 - System type: `swarm`
+- Agent mode: `deterministic`
 
 ## Result
 
@@ -53,6 +54,7 @@ Use `variant_a_policy_grounded` as the demo winner and show its fixed cases agai
 ```text
 cases=24
 system_type=swarm
+agent_mode=deterministic
                       variant  pass_rate  mean_score  fixed_cases  regressions         top_failure_category
                      baseline      0.625       0.775            0            0 missing_required_information
     variant_a_policy_grounded      1.000       1.000            9            0                         none

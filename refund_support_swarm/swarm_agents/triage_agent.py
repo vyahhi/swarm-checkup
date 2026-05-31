@@ -5,6 +5,8 @@ from typing import Any
 
 import weave
 
+from refund_support_swarm.llm_client import call_llm_json
+
 from .shared import contains_any
 
 
@@ -36,13 +38,13 @@ def _extract_usage_hours(ticket: str) -> float | None:
 
 
 @weave.op
-def triage_ticket(case: dict[str, Any], variant_name: str) -> dict[str, Any]:
+def triage_ticket(case: dict[str, Any], variant_name: str, agent_mode: str = "deterministic", model: str = "gpt-4o-mini") -> dict[str, Any]:
     ticket = str(case["ticket"])
     order_id_match = re.search(r"\bNS-\d+\b", ticket)
     category = str(case["category"])
     risk_tags = list(case.get("risk_tags", []))
     lower = ticket.lower()
-    return {
+    fallback = {
         "case_id": case["id"],
         "order_id": order_id_match.group(0) if order_id_match else "",
         "order_id_present": bool(order_id_match),
@@ -59,4 +61,16 @@ def triage_ticket(case: dict[str, Any], variant_name: str) -> dict[str, Any]:
         "risk_tags": risk_tags,
         "variant_name": variant_name,
     }
-
+    if agent_mode != "llm":
+        return fallback
+    llm_result = call_llm_json(
+        "triage_agent",
+        "You are a support triage agent. Return JSON. Preserve all fallback fields and add concise llm_notes if useful.",
+        {"case": case, "fallback_triage": fallback},
+        fallback,
+        model,
+    )
+    for key, value in fallback.items():
+        if key not in llm_result or not isinstance(llm_result[key], type(value)) and value is not None:
+            llm_result[key] = value
+    return llm_result

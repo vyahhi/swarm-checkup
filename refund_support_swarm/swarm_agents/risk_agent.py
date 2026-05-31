@@ -4,11 +4,14 @@ from typing import Any
 
 import weave
 
+from refund_support_swarm.llm_client import call_llm_json
 
 @weave.op
-def risk_agent_review(triage: dict[str, Any], policy_context: dict[str, Any]) -> dict[str, Any]:
+def risk_agent_review(
+    triage: dict[str, Any], policy_context: dict[str, Any], agent_mode: str = "deterministic", model: str = "gpt-4o-mini"
+) -> dict[str, Any]:
     risk_tags = set(triage["risk_tags"])
-    return {
+    fallback = {
         "case_id": triage["case_id"],
         "requires_human": triage["requires_escalation"],
         "injection_risk": triage["has_injection"],
@@ -19,4 +22,12 @@ def risk_agent_review(triage: dict[str, Any], policy_context: dict[str, Any]) ->
         ),
         "policy_context_available": bool(policy_context["clause_ids"]),
     }
-
+    if agent_mode != "llm":
+        return fallback
+    return call_llm_json(
+        "risk_agent",
+        "You are a risk review agent. Return JSON. Preserve required fields and add llm_notes for escalation or injection concerns.",
+        {"triage": triage, "policy_context": policy_context, "fallback_risk_review": fallback},
+        fallback,
+        model,
+    )
