@@ -177,6 +177,8 @@ WANDB_ENTITY=...
 AGENT_QA_WANDB_PROJECT=swarm-checkup
 AGENT_QA_DEMO_MODEL=Qwen/Qwen3.5-35B-A3B
 WANDB_INFERENCE_BASE_URL=https://api.inference.wandb.ai/v1
+WANDB_INFERENCE_TIMEOUT_SECONDS=20
+WANDB_INFERENCE_MAX_RETRIES=0
 ```
 
 The CLI and skill also support offline and disabled W&B run logging modes. Agent calls still require W&B Inference and `WANDB_API_KEY`.

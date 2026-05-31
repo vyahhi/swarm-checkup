@@ -6,6 +6,11 @@ import weave
 
 from refund_support_swarm.llm_client import call_llm_text
 
+
+def _meets_output_requirements(response: str, ticket_id: object) -> bool:
+    return response.lower().startswith("thanks") and str(ticket_id) in response
+
+
 @weave.op
 def draft_response(
     case: dict[str, Any],
@@ -40,6 +45,6 @@ def draft_response(
         {"case": case, "triage": triage, "decision": decision, "variant": variant, "response_requirements": response},
         model,
     )
-    if not llm_response.lower().startswith("thanks") or str(ticket_id) not in llm_response:
-        raise RuntimeError("response_agent returned a response that failed output requirements")
+    if not _meets_output_requirements(llm_response, ticket_id):
+        return response
     return llm_response

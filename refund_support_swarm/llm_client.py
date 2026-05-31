@@ -15,35 +15,53 @@ def llm_available() -> bool:
     return bool(os.getenv("WANDB_API_KEY"))
 
 
-@weave.op
-def call_llm_json(agent_name: str, system_prompt: str, user_payload: dict[str, Any], defaults: dict[str, Any], model: str) -> dict[str, Any]:
-    if not llm_available():
-        raise RuntimeError("WANDB_API_KEY is required for W&B Inference")
-
+def _client() -> "OpenAI":
     try:
         from openai import OpenAI
     except ImportError:
         raise RuntimeError("The openai package is required for W&B Inference") from None
 
-    client = OpenAI(
+    return OpenAI(
         base_url=os.getenv("WANDB_INFERENCE_BASE_URL", WANDB_INFERENCE_BASE_URL),
         api_key=os.environ["WANDB_API_KEY"],
         project=os.getenv("AGENT_QA_WANDB_INFERENCE_PROJECT"),
-        timeout=float(os.getenv("WANDB_INFERENCE_TIMEOUT_SECONDS", "60")),
+        timeout=float(os.getenv("WANDB_INFERENCE_TIMEOUT_SECONDS", "20")),
+        max_retries=int(os.getenv("WANDB_INFERENCE_MAX_RETRIES", "0")),
     )
-    response = client.chat.completions.create(
-        model=model,
-        temperature=0,
-        messages=[
-            {"role": "system", "content": f"{system_prompt}\nReturn only a valid JSON object."},
-            {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
-        ],
-    )
+
+
+def _fallback_json(agent_name: str, defaults: dict[str, Any], model: str, error: Exception) -> dict[str, Any]:
+    return {
+        **defaults,
+        "llm_used": False,
+        "llm_agent": agent_name,
+        "llm_model": model,
+        "llm_error": f"{type(error).__name__}: {error}",
+    }
+
+
+@weave.op
+def call_llm_json(agent_name: str, system_prompt: str, user_payload: dict[str, Any], defaults: dict[str, Any], model: str) -> dict[str, Any]:
+    if not llm_available():
+        raise RuntimeError("WANDB_API_KEY is required for W&B Inference")
+
+    client = _client()
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            temperature=0,
+            messages=[
+                {"role": "system", "content": f"{system_prompt}\nReturn only a valid JSON object."},
+                {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
+            ],
+        )
+    except Exception as exc:
+        return _fallback_json(agent_name, defaults, model, exc)
     content = response.choices[0].message.content or "{}"
     try:
         data = _json_object_from_text(content)
     except json.JSONDecodeError as exc:
-        raise RuntimeError(f"{agent_name} returned invalid JSON") from exc
+        return _fallback_json(agent_name, defaults, model, exc)
     return {**defaults, **data, "llm_used": True, "llm_agent": agent_name, "llm_model": model}
 
 
@@ -52,28 +70,21 @@ def call_llm_text(agent_name: str, system_prompt: str, user_payload: dict[str, A
     if not llm_available():
         raise RuntimeError("WANDB_API_KEY is required for W&B Inference")
 
+    client = _client()
     try:
-        from openai import OpenAI
-    except ImportError:
-        raise RuntimeError("The openai package is required for W&B Inference") from None
-
-    client = OpenAI(
-        base_url=os.getenv("WANDB_INFERENCE_BASE_URL", WANDB_INFERENCE_BASE_URL),
-        api_key=os.environ["WANDB_API_KEY"],
-        project=os.getenv("AGENT_QA_WANDB_INFERENCE_PROJECT"),
-        timeout=float(os.getenv("WANDB_INFERENCE_TIMEOUT_SECONDS", "60")),
-    )
-    response = client.chat.completions.create(
-        model=model,
-        temperature=0,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
-        ],
-    )
+        response = client.chat.completions.create(
+            model=model,
+            temperature=0,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(user_payload, sort_keys=True)},
+            ],
+        )
+    except Exception:
+        return str(user_payload.get("response_requirements", ""))
     content = response.choices[0].message.content
     if not content:
-        raise RuntimeError(f"{agent_name} returned an empty response")
+        return str(user_payload.get("response_requirements", ""))
     return content
 
 

@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from refund_support_swarm.config import load_settings
+from refund_support_swarm import llm_client
 from refund_support_swarm.prompts import get_variants
 from refund_support_swarm.runner import build_demo_run, records_to_dataframe, summarize_variants
 from refund_support_swarm.test_generator import generate_demo_suite
@@ -90,6 +91,56 @@ def test_triage_coerces_nullable_numeric_llm_fields(monkeypatch) -> None:
     )
     assert result["purchase_age_days"] == 5
     assert result["usage_hours"] == 1.5
+
+
+def test_response_agent_falls_back_when_llm_misses_requirements(monkeypatch) -> None:
+    monkeypatch.setattr(response_agent, "call_llm_text", lambda *args: "Hello, your refund is approved.")
+    response = response_agent.draft_response(
+        {"id": "CASE-1", "ticket": "Refund order NS-1001.", "category": "physical"},
+        {"order_id": "NS-1001", "order_id_present": True, "has_injection": False},
+        {"decision": "refund", "policy_clause_ids": ["P1"]},
+        {"behavior": "decision_rubric"},
+        "test-model",
+    )
+    assert response.startswith("Thanks")
+    assert "CASE-1" in response
+
+
+def test_llm_json_falls_back_on_provider_error(monkeypatch) -> None:
+    class FailingCompletions:
+        def create(self, **kwargs):
+            raise TimeoutError("provider timed out")
+
+    class FailingClient:
+        chat = type("Chat", (), {"completions": FailingCompletions()})()
+
+    monkeypatch.setenv("WANDB_API_KEY", "test-key")
+    monkeypatch.setattr(llm_client, "_client", lambda: FailingClient())
+    result = llm_client.call_llm_json("policy_agent", "Return JSON.", {}, {"clause_ids": ["P1"]}, "test-model")
+    assert result["clause_ids"] == ["P1"]
+    assert result["llm_used"] is False
+    assert "TimeoutError" in result["llm_error"]
+
+
+def test_llm_text_falls_back_on_empty_provider_response(monkeypatch) -> None:
+    class EmptyCompletions:
+        def create(self, **kwargs):
+            message = type("Message", (), {"content": ""})()
+            choice = type("Choice", (), {"message": message})()
+            return type("Response", (), {"choices": [choice]})()
+
+    class EmptyClient:
+        chat = type("Chat", (), {"completions": EmptyCompletions()})()
+
+    monkeypatch.setenv("WANDB_API_KEY", "test-key")
+    monkeypatch.setattr(llm_client, "_client", lambda: EmptyClient())
+    response = llm_client.call_llm_text(
+        "response_agent",
+        "Write a response.",
+        {"response_requirements": "Thanks. Case reference: CASE-1."},
+        "test-model",
+    )
+    assert response == "Thanks. Case reference: CASE-1."
 
 
 def test_cli_requires_wandb_key() -> None:
