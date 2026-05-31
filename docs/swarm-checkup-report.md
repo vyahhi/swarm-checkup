@@ -1,4 +1,4 @@
-# Agent Checkup Report
+# Swarm Checkup Report
 
 Generated: 2026-05-31 21:19:50 UTC
 

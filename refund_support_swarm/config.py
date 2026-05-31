@@ -33,7 +33,7 @@ def load_settings(wandb_mode: str | None = None) -> Settings:
     if not mode:
         mode = "online" if os.getenv("WANDB_API_KEY") else "disabled"
     return Settings(
-        project_name=os.getenv("AGENT_QA_WANDB_PROJECT", "agent-qa-lab"),
+        project_name=os.getenv("AGENT_QA_WANDB_PROJECT", "swarm-checkup"),
         wandb_mode=mode,
         wandb_entity=os.getenv("WANDB_ENTITY") or None,
         demo_model=os.getenv("AGENT_QA_DEMO_MODEL", DEFAULT_WANDB_INFERENCE_MODEL),

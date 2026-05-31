@@ -1,6 +1,6 @@
-# How Agent QA Lab Works
+# How Swarm Checkup Works
 
-Agent QA Lab is a W&B Inference-backed demo of an agent reliability workflow. It starts with a deliberately flawed refund-support swarm, runs it against a stable stress-test suite, traces each agent, shared-state update, and handoff message in W&B Weave, scores the output and coordination, and compares improved prompt variants.
+Swarm Checkup is a W&B Inference-backed demo of an agent reliability workflow. It starts with a deliberately flawed refund-support swarm, runs it against a stable stress-test suite, traces each agent, shared-state update, and handoff message in W&B Weave, scores the output and coordination, and compares improved prompt variants.
 
 ## End-to-End Flow
 
@@ -71,7 +71,7 @@ flowchart TB
     class J dashboard
 ```
 
-PNG: [agent-qa-lab-flow.png](diagrams/agent-qa-lab-flow.png)
+PNG: [swarm-checkup-flow.png](diagrams/swarm-checkup-flow.png)
 
 ## Runtime Architecture
 
@@ -88,7 +88,7 @@ flowchart TB
         Tests[fallback_tests.json]
     end
 
-    subgraph Core[Agent QA Lab package]
+    subgraph Core[Swarm Checkup package]
         TG[test_generator.py]
         Runner[runner.py]
         Orchestrator[support_agents.py]
@@ -147,7 +147,7 @@ flowchart TB
     class Weave,Tables,Run wandb
 ```
 
-PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)
+PNG: [swarm-checkup-architecture.png](diagrams/swarm-checkup-architecture.png)
 
 ## What Happens During a Demo
 
@@ -157,7 +157,7 @@ PNG: [agent-qa-lab-architecture.png](diagrams/agent-qa-lab-architecture.png)
 4. `@weave.op` wraps the major agent and evaluator steps, while the run record captures explicit handoff messages with payload keys and reasons.
 5. The evaluator assigns pass/fail, numeric scores, coordination score, and a failure category.
 6. The CLI and Markdown report show pass-rate improvement, fixed cases, remaining failures, and representative examples.
-7. In online W&B mode, the harness logs evaluation tables and summaries to the `agent-qa-lab` W&B project.
+7. In online W&B mode, the harness logs evaluation tables and summaries to the `swarm-checkup` W&B project.
 
 ## Why W&B Matters Here
 

@@ -9,7 +9,7 @@ from .wandb_logging import log_demo_tables, run_url, wandb_session
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the Agent QA Lab demo pipeline.")
+    parser = argparse.ArgumentParser(description="Run the Swarm Checkup demo pipeline.")
     parser.add_argument("--cases", type=int, default=24, help="Number of demo cases to run.")
     parser.add_argument("--wandb-mode", choices=["auto", "online", "offline", "disabled"], default="auto")
     args = parser.parse_args()
@@ -18,7 +18,7 @@ def main() -> int:
     if not llm_available():
         parser.error("WANDB_API_KEY is required because agents run through W&B Inference.")
 
-    with wandb_session(settings, run_name="agent-qa-lab-swarm-demo") as run:
+    with wandb_session(settings, run_name="swarm-checkup-swarm-demo") as run:
         cases, records, summaries = build_demo_run(
             case_count=args.cases,
             include_variants=True,

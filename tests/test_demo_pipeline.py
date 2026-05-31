@@ -180,7 +180,7 @@ def test_skill_runner_report_keeps_llm_metadata() -> None:
 
 
 def _load_skill_runner():
-    path = Path(__file__).resolve().parents[1] / "skills" / "agent-checkup" / "scripts" / "run_agent_qa.py"
+    path = Path(__file__).resolve().parents[1] / "skills" / "swarm-checkup" / "scripts" / "run_agent_qa.py"
     spec = importlib.util.spec_from_file_location("agent_checkup_runner", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

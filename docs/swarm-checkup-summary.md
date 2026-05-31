@@ -1,14 +1,14 @@
-# Agent QA Lab for W&B Weave
+# Swarm Checkup for W&B Weave
 
 ## One-Line Pitch
 
-Agent QA Lab turns a few example swarm tasks into a W&B-powered test bench for making multi-agent systems measurable, debuggable, and improvable.
+Swarm Checkup turns a few example swarm tasks into a W&B-powered test bench for making multi-agent systems measurable, debuggable, and improvable.
 
 ## Executive Summary
 
-Most hackathon teams will build a multi-agent app. Agent QA Lab builds the system those teams need next: a QA lab that tests, debugs, and improves multi-agent apps.
+Most hackathon teams will build a multi-agent app. Swarm Checkup builds the system those teams need next: a QA lab that tests, debugs, and improves multi-agent apps.
 
-The product is a W&B-native swarm evaluation lab. A user gives it a target multi-agent swarm and a few example tasks. Agent QA Lab automatically creates stress tests, runs the system, traces every agent and handoff in W&B Weave, scores answer and coordination failures, clusters root causes, and compares improved variants.
+The product is a W&B-native swarm evaluation lab. A user gives it a target multi-agent swarm and a few example tasks. Swarm Checkup automatically creates stress tests, runs the system, traces every agent and handoff in W&B Weave, scores answer and coordination failures, clusters root causes, and compares improved variants.
 
 ## Core Demo
 
@@ -22,7 +22,7 @@ The demo uses a deliberately flawed customer-support refund swarm. The system ha
 - Missing order IDs
 - Cases requiring escalation
 
-Agent QA Lab runs the flawed agent through generated test cases and produces:
+Swarm Checkup runs the flawed agent through generated test cases and produces:
 
 - Weave traces for every agent run and handoff
 - A W&B Table of inputs, outputs, scores, and failure reasons

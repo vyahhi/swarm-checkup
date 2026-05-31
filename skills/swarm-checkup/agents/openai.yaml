@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarm Checkup"
+  short_description: "Run W&B-backed checkups for multi-agent swarms"
+  default_prompt: "Use Swarm Checkup to evaluate this swarm, log handoff traces when configured, and produce a reliability report."

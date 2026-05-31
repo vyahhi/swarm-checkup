@@ -1,5 +1,5 @@
 [project]
-name = "agent-qa-lab"
+name = "swarm-checkup"
 version = "0.1.0"
 description = "W&B-powered QA lab for agentic applications."
 readme = "README.md"

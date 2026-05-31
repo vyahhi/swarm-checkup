@@ -28,7 +28,7 @@ def wandb_session(settings: Settings, run_name: str | None = None) -> Iterator[o
     run = wandb.init(
         project=settings.project_name,
         entity=settings.wandb_entity,
-        name=run_name or f"agent-qa-lab-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+        name=run_name or f"swarm-checkup-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         config={
             "demo_model": settings.demo_model,
             "wandb_mode": settings.wandb_mode,

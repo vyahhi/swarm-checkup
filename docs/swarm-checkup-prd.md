@@ -1,14 +1,14 @@
-# Agent QA Lab PRD
+# Swarm Checkup PRD
 
 ## 1. Overview
 
 ### 1.1 Product
 
-Agent QA Lab is a W&B-native evaluation and debugging lab for multi-agent swarms. It takes a small number of seed examples, generates a focused stress-test suite, runs a swarm workflow against those cases, traces execution and handoffs in W&B Weave, evaluates results, groups failures, and compares improved variants.
+Swarm Checkup is a W&B-native evaluation and debugging lab for multi-agent swarms. It takes a small number of seed examples, generates a focused stress-test suite, runs a swarm workflow against those cases, traces execution and handoffs in W&B Weave, evaluates results, groups failures, and compares improved variants.
 
 ### 1.2 Hackathon Positioning
 
-Most hackathon projects will demonstrate an agent completing tasks. Agent QA Lab demonstrates the reliability workflow needed after an agent demo works:
+Most hackathon projects will demonstrate an agent completing tasks. Swarm Checkup demonstrates the reliability workflow needed after an agent demo works:
 
 1. Generate realistic tests.
 2. Run the swarm.
@@ -22,7 +22,7 @@ The project should feel like "CI for agents" with W&B as the system of record.
 
 ### 1.3 One-Line Pitch
 
-Agent QA Lab turns a few example swarm tasks into a W&B-powered test bench for making multi-agent systems measurable, debuggable, and improvable.
+Swarm Checkup turns a few example swarm tasks into a W&B-powered test bench for making multi-agent systems measurable, debuggable, and improvable.
 
 ### 1.4 Primary Demo Domain
 
@@ -99,11 +99,11 @@ Needs:
 
 ### 4.1 Story
 
-"Agents are easy to demo and hard to trust. Agent QA Lab creates the QA loop that makes them measurable. We start with a flawed support agent, generate hard cases, trace each run in W&B, score failures, generate prompt variants, and show which version is actually better."
+"Agents are easy to demo and hard to trust. Swarm Checkup creates the QA loop that makes them measurable. We start with a flawed support agent, generate hard cases, trace each run in W&B, score failures, generate prompt variants, and show which version is actually better."
 
 ### 4.2 Live Demo Steps
 
-1. Open Agent QA Lab.
+1. Open Swarm Checkup.
 2. Show the refund policy and baseline support agent.
 3. Generate or load a stress-test suite.
 4. Run the baseline agent.
@@ -602,8 +602,8 @@ The demo should aim for:
 ├── scripts/
 │   └── run_agent_qa.py
 ├── docs/
-│   ├── agent-qa-lab-summary.md
-│   └── agent-qa-lab-prd.md
+│   ├── swarm-checkup-summary.md
+│   └── swarm-checkup-prd.md
 ├── refund_support_swarm/
 │   ├── __init__.py
 │   ├── config.py
@@ -858,7 +858,7 @@ Mitigations:
 3. "We start from a few examples and generate harder tests."
 4. "Now we run the baseline. Every step is traced in W&B Weave."
 5. "Here is a failure: the final answer is wrong, and the trace shows the decision agent ignored the refund-window clause."
-6. "Agent QA Lab groups failures by root cause."
+6. "Swarm Checkup groups failures by root cause."
 7. "Now it generates prompt variants targeted at those failures."
 8. "We rerun the exact same test suite."
 9. "W&B shows the comparison: baseline passed X%, best variant passed Y%, with row-level examples and trace links."
