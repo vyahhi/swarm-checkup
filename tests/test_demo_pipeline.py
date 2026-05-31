@@ -68,7 +68,7 @@ def test_swarm_records_include_handoffs() -> None:
 def test_wandb_inference_marks_agent_results() -> None:
     _, records, _ = build_demo_run(case_count=1, include_variants=False)
     result = records["baseline"][0].result
-    assert result.model == "meta-llama/Llama-3.1-8B-Instruct"
+    assert result.model == "Qwen/Qwen3.5-35B-A3B"
     assert result.triage["llm_used"] is True
     assert result.triage["llm_agent"] == "triage_agent"
 

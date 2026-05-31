@@ -29,14 +29,14 @@ def run_variant_suite(cases: list[dict], variant: dict) -> list[dict]:
             case,
             prompt_variant,
             policy,
-            model=variant.get("model", "meta-llama/Llama-3.1-8B-Instruct"),
+            model=variant.get("model", "Qwen/Qwen3.5-35B-A3B"),
         )
         evaluation = evaluate_case(case, result)
         records.append(RunRecord(case, result, evaluation).table_row())
     return records
 
 
-def run_suite(cases: list[TestCase], variant: PromptVariant, model: str = "meta-llama/Llama-3.1-8B-Instruct") -> list[RunRecord]:
+def run_suite(cases: list[TestCase], variant: PromptVariant, model: str = "Qwen/Qwen3.5-35B-A3B") -> list[RunRecord]:
     # Keep local runs single-pass so Weave traces match exactly one execution per case.
     policy = load_policy_clauses()
     records: list[RunRecord] = []
@@ -50,7 +50,7 @@ def run_suite(cases: list[TestCase], variant: PromptVariant, model: str = "meta-
 def run_all_variants(
     cases: list[TestCase],
     variants: list[PromptVariant] | None = None,
-    model: str = "meta-llama/Llama-3.1-8B-Instruct",
+    model: str = "Qwen/Qwen3.5-35B-A3B",
 ) -> dict[str, list[RunRecord]]:
     selected = variants or get_variants(include_baseline=True)
     return {variant.name: run_suite(cases, variant, model=model) for variant in selected}
@@ -128,7 +128,7 @@ def failure_counts(records_by_variant: dict[str, list[RunRecord]]) -> pd.DataFra
 def build_demo_run(
     case_count: int = 24,
     include_variants: bool = True,
-    model: str = "meta-llama/Llama-3.1-8B-Instruct",
+    model: str = "Qwen/Qwen3.5-35B-A3B",
 ) -> tuple[list[TestCase], dict[str, list[RunRecord]], list[VariantSummary]]:
     cases = generate_demo_suite(case_count)
     variants = get_variants(include_baseline=True) if include_variants else [BASELINE_VARIANT]

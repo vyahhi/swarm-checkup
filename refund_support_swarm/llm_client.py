@@ -8,7 +8,7 @@ import weave
 
 
 WANDB_INFERENCE_BASE_URL = "https://api.inference.wandb.ai/v1"
-DEFAULT_WANDB_INFERENCE_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
+DEFAULT_WANDB_INFERENCE_MODEL = "Qwen/Qwen3.5-35B-A3B"
 
 
 def llm_available() -> bool:

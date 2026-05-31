@@ -15,7 +15,7 @@ Generated: 2026-05-31 21:19:50 UTC
 - System type: `swarm`
 - Agent mode: `llm`
 - LLM provider: `wandb_inference`
-- Model: `meta-llama/Llama-3.1-8B-Instruct`
+- Model: `Qwen/Qwen3.5-35B-A3B`
 
 ## Result
 
@@ -58,7 +58,7 @@ cases=1
 system_type=swarm
 agent_mode=llm
 llm_provider=wandb_inference
-model=meta-llama/Llama-3.1-8B-Instruct
+model=Qwen/Qwen3.5-35B-A3B
                       variant  pass_rate  mean_score  fixed_cases  regressions top_failure_category
                      baseline        1.0         1.0            0            0                 none
     variant_a_policy_grounded        1.0         1.0            0            0                 none

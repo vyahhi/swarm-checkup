@@ -17,7 +17,7 @@ def run_agent(
     case: TestCase,
     variant: PromptVariant,
     policy: dict[str, PolicyClause],
-    model: str = "meta-llama/Llama-3.1-8B-Instruct",
+    model: str = "Qwen/Qwen3.5-35B-A3B",
 ) -> AgentResult:
     started = time.perf_counter()
     case_dict = case.to_dict()

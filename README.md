@@ -110,7 +110,7 @@ The default project is `swarm-checkup`. Set these environment variables in `.env
 WANDB_API_KEY=...
 WANDB_ENTITY=...
 AGENT_QA_WANDB_PROJECT=swarm-checkup
-AGENT_QA_DEMO_MODEL=meta-llama/Llama-3.1-8B-Instruct
+AGENT_QA_DEMO_MODEL=Qwen/Qwen3.5-35B-A3B
 WANDB_INFERENCE_BASE_URL=https://api.inference.wandb.ai/v1
 ```
 

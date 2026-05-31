@@ -62,7 +62,7 @@ class AgentResult:
     agent_trace: list[dict[str, Any]] = field(default_factory=list)
     handoff_count: int = 0
     participating_agents: list[str] = field(default_factory=list)
-    model: str = "meta-llama/Llama-3.1-8B-Instruct"
+    model: str = "Qwen/Qwen3.5-35B-A3B"
     trace_url: str = ""
 
     def to_dict(self) -> dict[str, Any]:
