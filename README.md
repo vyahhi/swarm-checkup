@@ -121,6 +121,7 @@ For a fuller run:
 ```
 
 The command writes [`docs/swarm-checkup-report.md`](docs/swarm-checkup-report.md).
+See [`docs/skill-output-example.md`](docs/skill-output-example.md) for a sample skill run and report summary.
 
 ## Run The Skill
 
@@ -163,6 +164,7 @@ W&B mode defaults to `auto`: online logging is used when `WANDB_API_KEY` is avai
 ## Outputs
 
 - [`docs/swarm-checkup-report.md`](docs/swarm-checkup-report.md): generated reliability report
+- [`docs/skill-output-example.md`](docs/skill-output-example.md): example skill console output
 - [`docs/swarm-checkup-summary.md`](docs/swarm-checkup-summary.md): short project summary
 - [`docs/how-it-works.md`](docs/how-it-works.md): implementation walkthrough
 - [`docs/swarm-checkup-prd.md`](docs/swarm-checkup-prd.md): product requirements
